@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Ugunduzi</string>
+    <string name="loginActivityTitle">Ugunduzi</string>
+    <string name="userAliasLabel">Your name</string>
+    <string name="userPasswordLabel">Your password</string>
+    <string name="loginButtonText">START</string>
+    <string name="okButtonText">OK</string>
+    <string name="cancelButtonText">Cancel</string>
+    <string name="emptyString"></string>
+    <string name="defineServerLabel">Enter server URL</string>
+    <string name="downloadDataProgressDialogTitle">Downloading</string>
+    <string name="pleaseConnectMessage">Please connect to the internet</string>
+    <string name="unknownUserPassLabel">Unknown user or password</string>
+    <string name="incorrectServerURLMessage">Incorrect server URL</string>
+</resources>
