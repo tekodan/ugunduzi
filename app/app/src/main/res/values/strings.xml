@@ -10,6 +10,7 @@
     <string name="defineServerLabel">Enter server URL</string>
     <string name="downloadDataProgressDialogTitle">Downloading</string>
     <string name="pleaseConnectMessage">Please connect to the internet</string>
-    <string name="unknownUserPassLabel">Unknown user or password</string>
+    <string name="wrongPasswordLabel">Wrong password</string>
     <string name="incorrectServerURLMessage">Incorrect server URL</string>
+    <string name="createNewUserLabel">Creating new user</string>
 </resources>
