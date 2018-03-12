@@ -31,6 +31,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
     public String user = "";
     private promptDialog dlg = null;
     private preferenceManager prefs;
+    private boolean dataDownloaded = false;
 
     private String uAS;
     private String uPS;
@@ -49,6 +50,9 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
         setContentView(R.layout.activity_login);
 
         prefs = new preferenceManager(this);
+
+        dataDownloaded = prefs.getPreferenceBoolean("dataDownloaded");
+
         server = prefs.getPreference("server");
         if (server.equals("")) {
             defineServer("");
@@ -56,7 +60,11 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
 
         user = prefs.getPreference("user");
         if (!user.equals("")) {
-            //TODO start next activity
+            if(dataDownloaded){
+                startNextActivity();
+            } else {
+                downloadData();
+            }
         } else {
             updateAutocomplete();
         }
@@ -102,6 +110,8 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
     public void downloadData() {
         dataItems = new ArrayList<>();
         dataItems.add("users");
+        dataItems.add("crops");
+        dataItems.add("treatments");
 
         httpConnection http = new httpConnection(this, this);
         if (http.isOnline()) {
@@ -186,11 +196,14 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                     // -1 = wrong password, 0 = new user, >0 known user
                     prefs.savePreference("user", uAS);
                     prefs.savePreferenceInt("user_id", userId);
-                    //TODO download user data?
-                    //TODO start next activity
+                    startNextActivity();
                 } else if (userId == 0) {
-                    connectionTask = 1;
-                    createNewUser(uAS, uPS);
+                    if(dataDownloaded) {
+                        connectionTask = 1;
+                        createNewUser(uAS, uPS);
+                    } else {
+                        downloadData();
+                    }
                 } else {
                     Toast.makeText(this, R.string.wrongPasswordLabel, Toast.LENGTH_SHORT).show();
                 }
@@ -230,7 +243,17 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                     } else {
                         bConnecting = false;
                         dialog.dismiss();
-                        updateAutocomplete();
+                        prefs.savePreferenceBoolean("dataDownloaded",true);
+                        if(!user.equals("")){
+                            startNextActivity();
+                        } else {
+                            if(!uAS.isEmpty() && !uPS.isEmpty()){
+                                connectionTask=1;
+                                createNewUser(uAS,uPS);
+                            } else {
+                                updateAutocomplete();
+                            }
+                        }
                     }
                     break;
                 case 1:
@@ -245,7 +268,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                     prefs.savePreference("user", uAS);
                     oUser newUser = new oUser(this);
                     newUser.addNewUser(userId, uAS, uPS);
-                    //TODO start next activity
+                    startNextActivity();
             }
         }
     }
@@ -265,6 +288,10 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
 
     private void deleteCatalog(String filename) {
         this.deleteFile(filename);
+    }
+
+    private void startNextActivity(){
+        //TODO: ifno farms, go to create farm. if single farm, go to farm. if multiple farms, go to farm chooser.
     }
 
 }

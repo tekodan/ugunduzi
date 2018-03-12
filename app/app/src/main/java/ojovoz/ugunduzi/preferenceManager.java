@@ -23,11 +23,11 @@ public class preferenceManager {
         return value;
     }
 
-    public boolean exists(String keyName) {
-        boolean ret;
+    public boolean getPreferenceBoolean(String keyName) {
+        boolean value;
         SharedPreferences ugunduziPrefs = context.getSharedPreferences("ugunduziPrefs", Context.MODE_PRIVATE);
-        ret = ugunduziPrefs.contains(keyName);
-        return ret;
+        value = ugunduziPrefs.getBoolean(keyName, false);
+        return value;
     }
 
     public void savePreference(String keyName, String keyValue) {
@@ -49,29 +49,6 @@ public class preferenceManager {
         SharedPreferences.Editor prefEditor = ugunduziPrefs.edit();
         prefEditor.putInt(keyName, keyValue);
         prefEditor.commit();
-    }
-
-    public void updateUserPrefs(String keyName, String keyValue){
-        String value = getPreference(keyName);
-        if(value.isEmpty()){
-            savePreference(keyName,keyValue);
-        } else if(!value.contains(keyValue)){
-            savePreference(keyName,value + ";" + keyValue);
-        }
-    }
-
-    public String getUserFromPrefs(String keyName, String aliasPass){
-        String ret="-1";
-        String value = getPreference(keyName);
-        CharSequence users[] = value.split(";");
-        for(int i=0; i < users.length; i++){
-            if(users[i].toString().contains(aliasPass)){
-                CharSequence parts[] = users[i].toString().split(",");
-                ret=parts[2]+","+parts[3];
-                break;
-            }
-        }
-        return ret;
     }
 
     public ArrayList<String> getArrayListPreference(String keyName){
