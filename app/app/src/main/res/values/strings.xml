@@ -13,4 +13,7 @@
     <string name="wrongPasswordLabel">Wrong password</string>
     <string name="incorrectServerURLMessage">Incorrect server URL</string>
     <string name="createNewUserLabel">Creating new user</string>
+    <string name="drawNewFarmTitle">Draw new farm</string>
+    <string name="defineFarmNameAcresTitle">New farm</string>
+    <string name="defineFarmNameAcresLabels">Farm name,Acres</string>
 </resources>

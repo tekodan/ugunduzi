@@ -7,4 +7,7 @@
     <color name="colorWhite">#FFFFFF</color>
     <color name="colorBlack">#000000</color>
     <color name="colorInput">#baba03</color>
+
+    <color name="colorDraw">#000000</color>
+    <color name="colorFillDefault">#CCCCCC</color>
 </resources>

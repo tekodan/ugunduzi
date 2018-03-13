@@ -3,6 +3,7 @@ package ojovoz.ugunduzi;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -33,8 +34,8 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
     private preferenceManager prefs;
     private boolean dataDownloaded = false;
 
-    private String uAS;
-    private String uPS;
+    private String uAS="";
+    private String uPS="";
 
     private ArrayList<String> dataItems;
     private int index;
@@ -71,7 +72,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
     }
 
     public void defineServer(String current) {
-        dlg = new promptDialog(this, R.string.emptyString, R.string.defineServerLabel, current) {
+        dlg = new promptDialog(this, 0, R.string.emptyString, R.string.defineServerLabel, current, "") {
             @Override
             public boolean onOkClicked(String input) {
                 if (!input.startsWith("http://")) {
@@ -217,6 +218,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
             bConnecting = false;
             dialog.dismiss();
             Toast.makeText(this, R.string.incorrectServerURLMessage, Toast.LENGTH_SHORT).show();
+            defineServer(server);
         } else {
             switch (connectionTask) {
                 case 0:
@@ -247,11 +249,15 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                         if(!user.equals("")){
                             startNextActivity();
                         } else {
-                            if(!uAS.isEmpty() && !uPS.isEmpty()){
-                                connectionTask=1;
-                                createNewUser(uAS,uPS);
-                            } else {
+                            if(uAS==null || uPS==null){
                                 updateAutocomplete();
+                            } else {
+                                if (!uAS.isEmpty() && !uPS.isEmpty()) {
+                                    connectionTask = 1;
+                                    createNewUser(uAS, uPS);
+                                } else {
+                                    updateAutocomplete();
+                                }
                             }
                         }
                     }
@@ -291,7 +297,22 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
     }
 
     private void startNextActivity(){
-        //TODO: ifno farms, go to create farm. if single farm, go to farm. if multiple farms, go to farm chooser.
+        if(prefs.preferenceExists(user+"_farms")){
+            String userFarms = prefs.getPreference(user+"_farms");
+            String[] userFarmsList = userFarms.split(",");
+            if(userFarmsList.length>1){
+                //farm chooser
+            } else {
+                //go to single farm
+            }
+        } else {
+            final Context context = this;
+            Intent i = new Intent(context, farmInterface.class);
+            i.putExtra("user",user);
+            i.putExtra("userId",userId);
+            i.putExtra("newFarm",true);
+            startActivity(i);
+            finish();
+        }
     }
-
 }
