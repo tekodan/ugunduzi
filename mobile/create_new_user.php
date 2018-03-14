@@ -13,6 +13,7 @@ if(isset($_GET['alias']) && isset($_GET['pass'])){
 		$query="INSERT INTO user (user_alias, user_password) VALUES('$alias', '$pass')";
 		$result = mysqli_query($dbh,$query);
 		$id = mysqli_insert_id($dbh);
+		$id*=-1;
 		echo($id);
 	}
 }

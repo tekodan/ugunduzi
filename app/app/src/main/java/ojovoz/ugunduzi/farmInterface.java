@@ -1,5 +1,6 @@
 package ojovoz.ugunduzi;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -10,8 +11,13 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -29,13 +35,15 @@ public class farmInterface extends AppCompatActivity {
     String user;
     int userId;
     boolean newFarm;
-    String farmData;
-    private promptDialog dlg = null;
+
+    preferenceManager prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_farm_interface);
+
+        prefs = new preferenceManager(this);
 
         relativeLayout = (RelativeLayout)findViewById(R.id.drawingCanvas);
         view = new SketchSheetView(farmInterface.this);
@@ -59,14 +67,53 @@ public class farmInterface extends AppCompatActivity {
     }
 
     public void defineFarmNameAcres(){
-        dlg = new promptDialog(this, 1, R.string.defineFarmNameAcresLabels, R.string.defineFarmNameAcresTitle, "", "") {
+
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_define_new_farm);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
+
+        EditText fName = (EditText)dialog.findViewById(R.id.newFarm);
+        String defaultFarmName = getString(R.string.defaultFarmNamePrefix)+" "+user;
+        if(!newFarm){
+            //TODO: add a number after default name
+        }
+        fName.setText(defaultFarmName);
+
+        EditText fSize = (EditText)dialog.findViewById(R.id.acres);
+        fSize.setText(Integer.toString(1));
+
+        Button button = (Button)dialog.findViewById(R.id.okButton);
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onOkClicked(String input) {
-                farmData=input;
-                return true;
+            public void onClick(View view) {
+                EditText fName = (EditText)dialog.findViewById(R.id.newFarm);
+                String farmName = fName.getText().toString();
+                if(farmName.isEmpty()){
+                    Toast.makeText(view.getContext(), R.string.farmNameCannotBeEmptyMessage, Toast.LENGTH_SHORT).show();
+                } else {
+                    //TODO: check if farm name is repeated
+                    EditText fSize = (EditText)dialog.findViewById(R.id.acres);
+                    int farmSize = Integer.parseInt(fSize.getText().toString());
+                    if(farmSize<=0){
+                        Toast.makeText(view.getContext(), R.string.farmSizeMustBeAboveZero, Toast.LENGTH_SHORT).show();
+                    } else {
+                        updateFarmData(farmName,farmSize);
+                        dialog.dismiss();
+                    }
+                }
             }
-        };
-        dlg.show();
+        });
+
+        dialog.show();
+    }
+
+    public void updateFarmData(String fName, int fSize){
+        prefs.appendIfNewValue(user+"_farms",fName,",");
+        //TODO: update log: create farm
+
+        this.setTitle(this.getTitle()+ ": " + fName);
     }
 
     class SketchSheetView extends View {

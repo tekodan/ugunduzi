@@ -14,6 +14,10 @@
     <string name="incorrectServerURLMessage">Incorrect server URL</string>
     <string name="createNewUserLabel">Creating new user</string>
     <string name="drawNewFarmTitle">Draw new farm</string>
-    <string name="defineFarmNameAcresTitle">New farm</string>
-    <string name="defineFarmNameAcresLabels">Farm name,Acres</string>
+    <string name="defineNewFarmDialogTitle">New farm</string>
+    <string name="newFarmNameLabel">Enter name of new farm</string>
+    <string name="enterAcresLabel">Size (acres)</string>
+    <string name="defaultFarmNamePrefix">Shamba la</string>
+    <string name="farmNameCannotBeEmptyMessage">Farm name cannot be empty</string>
+    <string name="farmSizeMustBeAboveZero">Farm size must be above zero</string>
 </resources>

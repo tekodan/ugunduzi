@@ -72,7 +72,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
     }
 
     public void defineServer(String current) {
-        dlg = new promptDialog(this, 0, R.string.emptyString, R.string.defineServerLabel, current, "") {
+        dlg = new promptDialog(this, R.string.emptyString, R.string.defineServerLabel, current) {
             @Override
             public boolean onOkClicked(String input) {
                 if (!input.startsWith("http://")) {
@@ -105,6 +105,9 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                 }
             });
             doCreateNewUser(uAS, uPS);
+        } else {
+            prefs.savePreferenceInt("user_id", 0);
+            prefs.savePreference("user_pass", uPS);
         }
     }
 
@@ -195,6 +198,8 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                 userId = newUser.getUserIdFromAliasPass();
                 if (userId > 0) {
                     // -1 = wrong password, 0 = new user, >0 known user
+                    //TODO: user already exists. Ask: "Download user data? Y/N"
+                    user = uAS;
                     prefs.savePreference("user", uAS);
                     prefs.savePreferenceInt("user_id", userId);
                     startNextActivity();
@@ -266,12 +271,14 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                     dialog.dismiss();
                     userId = Integer.parseInt(output);
                     if (userId > 0) {
+                        //TODO: user existed previously, ask: "Download user data Y/N?"
                         prefs.savePreferenceInt("user_id", userId);
                     } else {
-                        prefs.savePreferenceInt("user_id", 0);
-                        prefs.savePreference("user_pass", uPS);
+                        userId*=-1;
+                        prefs.savePreferenceInt("user_id", userId);
                     }
                     prefs.savePreference("user", uAS);
+                    user=uAS;
                     oUser newUser = new oUser(this);
                     newUser.addNewUser(userId, uAS, uPS);
                     startNextActivity();

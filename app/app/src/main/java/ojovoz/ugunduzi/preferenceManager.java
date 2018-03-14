@@ -58,40 +58,27 @@ public class preferenceManager {
         prefEditor.commit();
     }
 
-    public ArrayList<String> getArrayListPreference(String keyName){
-        ArrayList<String> ret = new ArrayList<>();
+    public boolean valueExistsInList(String keyName, String value, String separator){
+        boolean ret=false;
         String allValues=getPreference(keyName);
         if(!allValues.isEmpty()) {
-            String valuesArray[] = allValues.split("\\*");
-            if(valuesArray.length>0){
-                for(int i=0;i<valuesArray.length;i++){
-                    ret.add(valuesArray[i]);
+            String valuesArray[] = allValues.split(separator);
+            for(int i=0;i<valuesArray.length;i++) {
+                if(valuesArray[i].equals(value)){
+                    ret=true;
+                    break;
                 }
-            } else {
-                ret.add(allValues);
             }
         }
         return ret;
     }
 
-    public void appendIfNotExists(String keyName, String value){
-        String previousValue = getPreference(keyName);
-        if(!previousValue.isEmpty()) {
-            String previousValues[] = previousValue.split("\\*");
-            if(previousValues.length>0){
-                boolean bFound=false;
-                for(int i=0;i<previousValues.length;i++){
-                    if(previousValues[i].equals(value)){
-                        bFound=true;
-                        break;
-                    }
-                }
-                if(!bFound){
-                    String newValue = previousValue+"*"+value;
-                    savePreference(keyName,newValue);
-                }
-            } else {
-                savePreference(keyName, value);
+    public void appendIfNewValue(String keyName, String value, String separator){
+        String allValues=getPreference(keyName);
+        if(!allValues.isEmpty()) {
+            if(!valueExistsInList(keyName, value, separator)){
+                String newValues = allValues + separator + value;
+                savePreference(keyName, newValues);
             }
         } else {
             savePreference(keyName, value);
