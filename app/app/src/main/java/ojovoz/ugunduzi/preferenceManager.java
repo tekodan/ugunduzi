@@ -23,6 +23,13 @@ public class preferenceManager {
         return value;
     }
 
+    public int getPreferenceInt(String keyName) {
+        int value = -1;
+        SharedPreferences ugunduziPrefs = context.getSharedPreferences("ugunduziPrefs", Context.MODE_PRIVATE);
+        value = ugunduziPrefs.getInt(keyName, -1);
+        return value;
+    }
+
     public boolean preferenceExists(String keyName){
         boolean ret=false;
         SharedPreferences ugunduziPrefs = context.getSharedPreferences("ugunduziPrefs", Context.MODE_PRIVATE);

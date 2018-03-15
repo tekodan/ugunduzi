@@ -3,23 +3,26 @@ package ojovoz.ugunduzi;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Path;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Created by Eugenio on 13/03/2018.
@@ -32,9 +35,17 @@ public class farmInterface extends AppCompatActivity {
     Bitmap bitmap;
     Canvas canvas;
 
+    int displayWidth;
+    int displayHeight;
+    Bitmap iconMove;
+    Bitmap iconResize;
+
     String user;
     int userId;
     boolean newFarm;
+
+    ArrayList<oPlot> plots;
+    oPlot currentPlot;
 
     preferenceManager prefs;
 
@@ -43,30 +54,54 @@ public class farmInterface extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_farm_interface);
 
-        prefs = new preferenceManager(this);
-
-        relativeLayout = (RelativeLayout)findViewById(R.id.drawingCanvas);
-        view = new SketchSheetView(farmInterface.this);
-        paint = new Paint();
-        relativeLayout.addView(view, new LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
-        paint.setDither(true);
-        paint.setColor(ContextCompat.getColor(this, R.color.colorDraw));
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeJoin(Paint.Join.ROUND);
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeWidth(2);
-
         user=getIntent().getExtras().getString("user");
         userId=getIntent().getExtras().getInt("userId");
         newFarm = getIntent().getExtras().getBoolean("newFarm");
 
         if(newFarm){
             this.setTitle(R.string.drawNewFarmTitle);
-            defineFarmNameAcres();
+            defineFarmNameAcres(1);
         }
+
+        plots=new ArrayList<>();
+
+        prefs = new preferenceManager(this);
+
+        iconMove=BitmapFactory.decodeResource(this.getResources(),R.drawable.move);
+        iconResize=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize);
+
+        LinearLayout root = (LinearLayout) findViewById(R.id.mainRoot);
+        root.post(new Runnable() {
+            @Override
+            public void run() {
+                Rect rect = new Rect();
+                Window win = getWindow();
+                win.getDecorView().getWindowVisibleDisplayFrame(rect);
+                int contentViewTop = win.findViewById(Window.ID_ANDROID_CONTENT).getTop();
+                DisplayMetrics metrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                displayWidth = metrics.widthPixels;
+                displayHeight = (int)(metrics.heightPixels-(contentViewTop*metrics.density));
+
+                relativeLayout = (RelativeLayout)findViewById(R.id.drawingCanvas);
+                view = new SketchSheetView(farmInterface.this,displayWidth,displayHeight);
+                paint = new Paint();
+                relativeLayout.addView(view, new LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+                paint.setDither(true);
+                paint.setColor(ContextCompat.getColor(farmInterface.this, R.color.colorDraw));
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeCap(Paint.Cap.ROUND);
+                paint.setStrokeWidth(4);
+
+                if(newFarm){
+                    currentPlot = new oPlot(displayWidth/2,displayHeight/2,displayWidth/2,displayHeight/2);
+                    plots.add(currentPlot);
+                }
+            }
+        });
     }
 
-    public void defineFarmNameAcres(){
+    public void defineFarmNameAcres(int n){
 
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -75,7 +110,7 @@ public class farmInterface extends AppCompatActivity {
         dialog.setCancelable(false);
 
         EditText fName = (EditText)dialog.findViewById(R.id.newFarm);
-        String defaultFarmName = getString(R.string.defaultFarmNamePrefix)+" "+user;
+        String defaultFarmName = getString(R.string.defaultFarmNamePrefix)+" "+String.valueOf(n);
         if(!newFarm){
             //TODO: add a number after default name
         }
@@ -118,33 +153,29 @@ public class farmInterface extends AppCompatActivity {
 
     class SketchSheetView extends View {
 
-        public SketchSheetView(Context context) {
-            super(context);
-            bitmap = Bitmap.createBitmap(820, 480, Bitmap.Config.ARGB_4444);
+        Context context;
+
+        public SketchSheetView(Context c, int w, int h) {
+
+            super(c);
+            context=c;
+            bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_4444);
             canvas = new Canvas(bitmap);
             this.setBackgroundColor(ContextCompat.getColor(context, R.color.colorWhite));
         }
 
-        private ArrayList<DrawingClass> DrawingClassArrayList = new ArrayList<DrawingClass>();
-
         @Override
         public boolean onTouchEvent(MotionEvent event) {
 
-            DrawingClass pathWithPaint = new DrawingClass();
-            //canvas.drawPath(path2, paint);
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 /*
-                path2.moveTo(event.getX(), event.getY());
-                path2.lineTo(event.getX(), event.getY());
+                currentPlot.x=(int)event.getX();
+                currentPlot.y=(int)event.getY();
                 */
             }
             else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                /*
-                path2.lineTo(event.getX(), event.getY());
-                pathWithPaint.setPath(path2);
-                pathWithPaint.setPaint(paint);
-                DrawingClassArrayList.add(pathWithPaint);
-                */
+                currentPlot.x=(int)event.getX();
+                currentPlot.y=(int)event.getY();
             }
 
             invalidate();
@@ -154,31 +185,23 @@ public class farmInterface extends AppCompatActivity {
         @Override
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
-            if (DrawingClassArrayList.size() > 0) {
-                canvas.drawPath(DrawingClassArrayList.get(DrawingClassArrayList.size() - 1).getPath(),DrawingClassArrayList.get(DrawingClassArrayList.size() - 1).getPaint());
+
+            Iterator<oPlot> iterator = plots.iterator();
+            while (iterator.hasNext()) {
+                oPlot plot = iterator.next();
+                drawPlot(canvas, plot.x, plot.y, plot.w, plot.h, ContextCompat.getColor(context, R.color.colorDraw), ContextCompat.getColor(context, R.color.colorFillDefault));
             }
         }
-    }
 
-    public class DrawingClass {
-
-        Path DrawingClassPath;
-        Paint DrawingClassPaint;
-
-        public Path getPath() {
-            return DrawingClassPath;
-        }
-
-        public void setPath(Path path) {
-            this.DrawingClassPath = path;
-        }
-
-        public Paint getPaint() {
-            return DrawingClassPaint;
-        }
-
-        public void setPaint(Paint paint) {
-            this.DrawingClassPaint = paint;
+        private void drawPlot(Canvas canvas, int x, int y, float w, float h, int border, int fill){
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(fill);
+            canvas.drawRect(x,y,x+w,y+h,paint);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(border);
+            canvas.drawRect(x,y,x+w,y+h,paint);
+            canvas.drawBitmap(iconMove,(x+(w/2))-(iconMove.getWidth()/2),(y+(h/2)-iconMove.getHeight()/2),paint);
+            canvas.drawBitmap(iconResize,(w+x)-iconResize.getWidth()-2,(h+y)-iconResize.getHeight()-2,paint);
         }
     }
 }

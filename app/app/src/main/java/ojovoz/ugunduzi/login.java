@@ -62,6 +62,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
         user = prefs.getPreference("user");
         if (!user.equals("")) {
             if(dataDownloaded){
+                userId = prefs.getPreferenceInt("userId");
                 startNextActivity();
             } else {
                 downloadData();
@@ -106,8 +107,8 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
             });
             doCreateNewUser(uAS, uPS);
         } else {
-            prefs.savePreferenceInt("user_id", 0);
-            prefs.savePreference("user_pass", uPS);
+            prefs.savePreferenceInt("userId", 0);
+            prefs.savePreference("userPass", uPS);
         }
     }
 
@@ -201,7 +202,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                     //TODO: user already exists. Ask: "Download user data? Y/N"
                     user = uAS;
                     prefs.savePreference("user", uAS);
-                    prefs.savePreferenceInt("user_id", userId);
+                    prefs.savePreferenceInt("userId", userId);
                     startNextActivity();
                 } else if (userId == 0) {
                     if(dataDownloaded) {
@@ -270,18 +271,23 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                 case 1:
                     dialog.dismiss();
                     userId = Integer.parseInt(output);
-                    if (userId > 0) {
-                        //TODO: user existed previously, ask: "Download user data Y/N?"
-                        prefs.savePreferenceInt("user_id", userId);
+                    if(userId!=0) {
+                        if (userId > 0) {
+                            //TODO: user existed previously, ask: "Download user data Y/N?"
+                            prefs.savePreferenceInt("userId", userId);
+                        } else if (userId < 0) {
+                            userId *= -1;
+                            prefs.savePreferenceInt("userId", userId);
+                        }
+                        prefs.savePreference("user", uAS);
+                        user=uAS;
+                        oUser newUser = new oUser(this);
+                        newUser.addNewUser(userId, uAS, uPS);
+                        startNextActivity();
                     } else {
-                        userId*=-1;
-                        prefs.savePreferenceInt("user_id", userId);
+                        Toast.makeText(this, R.string.wrongPasswordLabel, Toast.LENGTH_SHORT).show();
+                        updateAutocomplete();
                     }
-                    prefs.savePreference("user", uAS);
-                    user=uAS;
-                    oUser newUser = new oUser(this);
-                    newUser.addNewUser(userId, uAS, uPS);
-                    startNextActivity();
             }
         }
     }
@@ -309,8 +315,36 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
             String[] userFarmsList = userFarms.split(",");
             if(userFarmsList.length>1){
                 //farm chooser
+
+                //following code for testing purposes only
+                //begin delete:
+
+                final Context context = this;
+                Intent i = new Intent(context, farmInterface.class);
+                i.putExtra("user",user);
+                i.putExtra("userId",userId);
+                i.putExtra("newFarm",true);
+                startActivity(i);
+                finish();
+
+                //end delete
+
             } else {
                 //go to single farm
+
+                //following code for testing purposes only
+                //begin delete:
+
+                final Context context = this;
+                Intent i = new Intent(context, farmInterface.class);
+                i.putExtra("user",user);
+                i.putExtra("userId",userId);
+                i.putExtra("newFarm",true);
+                startActivity(i);
+                finish();
+
+                //end delete
+
             }
         } else {
             final Context context = this;
