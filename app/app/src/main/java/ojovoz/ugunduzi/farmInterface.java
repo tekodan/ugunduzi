@@ -21,7 +21,6 @@ import android.widget.RelativeLayout;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -44,8 +43,7 @@ public class farmInterface extends AppCompatActivity {
     int userId;
     boolean newFarm;
 
-    ArrayList<oPlot> plots;
-    oPlot currentPlot;
+    oPlotMatrix plotMatrix;
 
     preferenceManager prefs;
 
@@ -63,7 +61,7 @@ public class farmInterface extends AppCompatActivity {
             defineFarmNameAcres(1);
         }
 
-        plots=new ArrayList<>();
+        plotMatrix = new oPlotMatrix();
 
         prefs = new preferenceManager(this);
 
@@ -93,9 +91,10 @@ public class farmInterface extends AppCompatActivity {
                 paint.setStrokeCap(Paint.Cap.ROUND);
                 paint.setStrokeWidth(4);
 
+                plotMatrix.createMatrix(displayWidth,displayHeight);
+
                 if(newFarm){
-                    currentPlot = new oPlot(displayWidth/2,displayHeight/2,displayWidth/2,displayHeight/2);
-                    plots.add(currentPlot);
+                    plotMatrix.addPlot();
                 }
             }
         });
@@ -167,15 +166,8 @@ public class farmInterface extends AppCompatActivity {
         @Override
         public boolean onTouchEvent(MotionEvent event) {
 
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                /*
-                currentPlot.x=(int)event.getX();
-                currentPlot.y=(int)event.getY();
-                */
-            }
-            else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                currentPlot.x=(int)event.getX();
-                currentPlot.y=(int)event.getY();
+            if (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE) {
+                plotMatrix.passEvent(event);
             }
 
             invalidate();
@@ -186,7 +178,7 @@ public class farmInterface extends AppCompatActivity {
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
 
-            Iterator<oPlot> iterator = plots.iterator();
+            Iterator<oPlot> iterator = plotMatrix.getPlots().iterator();
             while (iterator.hasNext()) {
                 oPlot plot = iterator.next();
                 drawPlot(canvas, plot.x, plot.y, plot.w, plot.h, ContextCompat.getColor(context, R.color.colorDraw), ContextCompat.getColor(context, R.color.colorFillDefault));
