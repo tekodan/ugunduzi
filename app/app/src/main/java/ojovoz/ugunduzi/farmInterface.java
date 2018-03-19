@@ -61,12 +61,12 @@ public class farmInterface extends AppCompatActivity {
             defineFarmNameAcres(1);
         }
 
-        plotMatrix = new oPlotMatrix();
-
         prefs = new preferenceManager(this);
 
         iconMove=BitmapFactory.decodeResource(this.getResources(),R.drawable.move);
         iconResize=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize);
+
+        plotMatrix = new oPlotMatrix();
 
         LinearLayout root = (LinearLayout) findViewById(R.id.mainRoot);
         root.post(new Runnable() {
@@ -94,7 +94,7 @@ public class farmInterface extends AppCompatActivity {
                 plotMatrix.createMatrix(displayWidth,displayHeight);
 
                 if(newFarm){
-                    plotMatrix.addPlot();
+                    plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight());
                 }
             }
         });
@@ -166,34 +166,50 @@ public class farmInterface extends AppCompatActivity {
         @Override
         public boolean onTouchEvent(MotionEvent event) {
 
-            if (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE) {
-                plotMatrix.passEvent(event);
+            if (event.getActionMasked() == MotionEvent.ACTION_DOWN || event.getActionMasked() == MotionEvent.ACTION_MOVE || event.getActionMasked() == MotionEvent.ACTION_UP) {
+                invalidate();
+                return plotMatrix.passEvent(event);
+            } else {
+                invalidate();
+                return true;
             }
-
-            invalidate();
-            return true;
         }
 
         @Override
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
 
+            if(plotMatrix.requestRedraw){
+                canvas.drawColor(ContextCompat.getColor(context,R.color.colorWhite));
+                plotMatrix.requestRedraw=false;
+            }
+
             Iterator<oPlot> iterator = plotMatrix.getPlots().iterator();
             while (iterator.hasNext()) {
                 oPlot plot = iterator.next();
-                drawPlot(canvas, plot.x, plot.y, plot.w, plot.h, ContextCompat.getColor(context, R.color.colorDraw), ContextCompat.getColor(context, R.color.colorFillDefault));
+                drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDraw), ContextCompat.getColor(context, R.color.colorFillDefault));
+            }
+
+            if(plotMatrix.ghostPlot !=null){
+                drawGhostRectangle(canvas, plotMatrix.ghostPlot, ContextCompat.getColor(context, R.color.colorDrawGhostRectangle));
             }
         }
 
-        private void drawPlot(Canvas canvas, int x, int y, float w, float h, int border, int fill){
+        private void drawPlot(Canvas canvas, oPlot p, int border, int fill){
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(fill);
-            canvas.drawRect(x,y,x+w,y+h,paint);
+            canvas.drawRect(p.x,p.y,p.x+p.w,p.y+p.h,paint);
             paint.setStyle(Paint.Style.STROKE);
             paint.setColor(border);
-            canvas.drawRect(x,y,x+w,y+h,paint);
-            canvas.drawBitmap(iconMove,(x+(w/2))-(iconMove.getWidth()/2),(y+(h/2)-iconMove.getHeight()/2),paint);
-            canvas.drawBitmap(iconResize,(w+x)-iconResize.getWidth()-2,(h+y)-iconResize.getHeight()-2,paint);
+            canvas.drawRect(p.x,p.y,p.x+p.w,p.y+p.h,paint);
+            canvas.drawBitmap(iconMove,p.iMoveX,p.iMoveY,paint);
+            canvas.drawBitmap(iconResize,p.iResizeX,p.iResizeY,paint);
+        }
+
+        private void drawGhostRectangle(Canvas canvas, oPlot gR, int border){
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(border);
+            canvas.drawRect(gR.x,gR.y,gR.x+gR.w+1,gR.y+gR.h+1,paint);
         }
     }
 }

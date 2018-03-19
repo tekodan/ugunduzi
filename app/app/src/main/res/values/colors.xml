@@ -10,4 +10,5 @@
 
     <color name="colorDraw">#000000</color>
     <color name="colorFillDefault">#BBBBBB</color>
+    <color name="colorDrawGhostRectangle">#FA7000</color>
 </resources>
