@@ -37,7 +37,9 @@ public class farmInterface extends AppCompatActivity {
     int displayWidth;
     int displayHeight;
     Bitmap iconMove;
+    Bitmap iconMoveFaded;
     Bitmap iconResize;
+    Bitmap iconResizeFaded;
 
     String user;
     int userId;
@@ -65,6 +67,8 @@ public class farmInterface extends AppCompatActivity {
 
         iconMove=BitmapFactory.decodeResource(this.getResources(),R.drawable.move);
         iconResize=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize);
+        iconMoveFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.move_faded);
+        iconResizeFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize_faded);
 
         plotMatrix = new oPlotMatrix();
 
@@ -187,7 +191,11 @@ public class farmInterface extends AppCompatActivity {
             Iterator<oPlot> iterator = plotMatrix.getPlots().iterator();
             while (iterator.hasNext()) {
                 oPlot plot = iterator.next();
-                drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDraw), ContextCompat.getColor(context, R.color.colorFillDefault));
+                if(plot.state==2 || plot.state==3) {
+                    drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDrawFaded), ContextCompat.getColor(context, R.color.colorFillFaded), iconMoveFaded, iconResizeFaded);
+                } else {
+                    drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDraw), ContextCompat.getColor(context, R.color.colorFillDefault), iconMove, iconResize);
+                }
             }
 
             if(plotMatrix.ghostPlot !=null){
@@ -195,15 +203,15 @@ public class farmInterface extends AppCompatActivity {
             }
         }
 
-        private void drawPlot(Canvas canvas, oPlot p, int border, int fill){
+        private void drawPlot(Canvas canvas, oPlot p, int border, int fill, Bitmap iMove, Bitmap iResize){
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(fill);
             canvas.drawRect(p.x,p.y,p.x+p.w,p.y+p.h,paint);
             paint.setStyle(Paint.Style.STROKE);
             paint.setColor(border);
             canvas.drawRect(p.x,p.y,p.x+p.w,p.y+p.h,paint);
-            canvas.drawBitmap(iconMove,p.iMoveX,p.iMoveY,paint);
-            canvas.drawBitmap(iconResize,p.iResizeX,p.iResizeY,paint);
+            canvas.drawBitmap(iMove,p.iMoveX,p.iMoveY,paint);
+            canvas.drawBitmap(iResize,p.iResizeX,p.iResizeY,paint);
         }
 
         private void drawGhostRectangle(Canvas canvas, oPlot gR, int border){

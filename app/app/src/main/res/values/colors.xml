@@ -9,6 +9,8 @@
     <color name="colorInput">#BABA03</color>
 
     <color name="colorDraw">#000000</color>
+    <color name="colorDrawFaded">#666666</color>
     <color name="colorFillDefault">#BBBBBB</color>
+    <color name="colorFillFaded">#EEEEEE</color>
     <color name="colorDrawGhostRectangle">#FA7000</color>
 </resources>
