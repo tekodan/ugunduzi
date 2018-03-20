@@ -10,7 +10,6 @@ public class oPlot {
     public float w;
     public float h;
 
-    public oPlotCanMove plotCanMove;
     public int state; // 0 = default; 1 = touched; 2 = moving; 3 = resizing
 
     public int iMoveX;
@@ -23,7 +22,6 @@ public class oPlot {
     public int iResizeH;
 
     oPlot(){
-        plotCanMove = new oPlotCanMove();
         state=0;
     }
 
@@ -32,8 +30,6 @@ public class oPlot {
         y=rY;
         w=rW;
         h=rH;
-
-        plotCanMove = new oPlotCanMove();
 
         state=0;
     }
