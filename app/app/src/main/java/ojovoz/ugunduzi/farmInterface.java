@@ -44,6 +44,8 @@ public class farmInterface extends AppCompatActivity {
     Bitmap iconMoveFaded;
     Bitmap iconResize;
     Bitmap iconResizeFaded;
+    Bitmap iconContents;
+    Bitmap iconContentsFaded;
 
     String user;
     int userId;
@@ -73,8 +75,11 @@ public class farmInterface extends AppCompatActivity {
 
         iconMove=BitmapFactory.decodeResource(this.getResources(),R.drawable.move);
         iconResize=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize);
+        iconContents=BitmapFactory.decodeResource(this.getResources(),R.drawable.contents);
         iconMoveFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.move_faded);
         iconResizeFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize_faded);
+        iconResizeFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.contents_faded);
+
 
         plotMatrix = new oPlotMatrix();
 
@@ -104,7 +109,7 @@ public class farmInterface extends AppCompatActivity {
                 plotMatrix.createMatrix(displayWidth,displayHeight);
 
                 if(newFarm){
-                    plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight());
+                    plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight());
                 }
             }
         });
@@ -141,7 +146,7 @@ public class farmInterface extends AppCompatActivity {
     }
 
     public void addPlot(){
-        if(!plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight())){
+        if(!plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight())){
             Toast.makeText(this, R.string.noSpaceForNewPlotMessage, Toast.LENGTH_SHORT).show();
         }
     }
@@ -279,9 +284,9 @@ public class farmInterface extends AppCompatActivity {
             while (iterator.hasNext()) {
                 oPlot plot = iterator.next();
                 if(plot==plotMatrix.currentPlot) {
-                    drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDraw), ContextCompat.getColor(context, R.color.colorFillDefault), iconMove, iconResize);
+                    drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDraw), ContextCompat.getColor(context, R.color.colorFillDefault), iconMove, iconResize, iconContents);
                 } else {
-                    drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDrawFaded), ContextCompat.getColor(context, R.color.colorFillFaded), iconMoveFaded, iconResizeFaded);
+                    drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDrawFaded), ContextCompat.getColor(context, R.color.colorFillFaded), iconMoveFaded, iconResizeFaded, iconContentsFaded);
                 }
             }
 
@@ -290,7 +295,7 @@ public class farmInterface extends AppCompatActivity {
             }
         }
 
-        private void drawPlot(Canvas canvas, oPlot p, int border, int fill, Bitmap iMove, Bitmap iResize){
+        private void drawPlot(Canvas canvas, oPlot p, int border, int fill, Bitmap iMove, Bitmap iResize, Bitmap iContents){
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(fill);
             canvas.drawRect(p.x,p.y,p.x+p.w,p.y+p.h,paint);
@@ -299,6 +304,7 @@ public class farmInterface extends AppCompatActivity {
             canvas.drawRect(p.x,p.y,p.x+p.w,p.y+p.h,paint);
             canvas.drawBitmap(iMove,p.iMoveX,p.iMoveY,paint);
             canvas.drawBitmap(iResize,p.iResizeX,p.iResizeY,paint);
+            canvas.drawBitmap(iContents,p.iContentsX,p.iContentsY,paint);
         }
 
         private void drawGhostRectangle(Canvas canvas, oPlot gR, int border){

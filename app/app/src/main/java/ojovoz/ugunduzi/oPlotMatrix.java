@@ -48,12 +48,12 @@ public class oPlotMatrix {
         currentPlot = p;
     }
 
-    public boolean addPlot(int iMoveW, int iMoveH, int iResizeW, int iResizeH) {
+    public boolean addPlot(int iMoveW, int iMoveH, int iResizeW, int iResizeH, int iContentsW, int iContentsH) {
         boolean ret;
         matrixContent cell = findFirstAvailablePosition();
         if (cell.point != null) {
             oPlot p = new oPlot(cell.point.x, cell.point.y, displayWidth / 4, displayHeight / 4);
-            p.addAreas(iMoveW, iMoveH, iResizeW, iResizeH);
+            p.addAreas(iMoveW, iMoveH, iResizeW, iResizeH, iContentsW, iContentsH);
             setCurrentPlot(p);
             plots.add(p);
             cell.plot = p;
@@ -143,6 +143,8 @@ public class oPlotMatrix {
                     plot.state = 2;
                 } else if (isResizing(plot, x, y)) {
                     plot.state = 3;
+                } else if (isEditing(plot, x, y)) {
+                    plot.state = 4;
                 } else {
                     plot.state = 1;
                 }
@@ -172,6 +174,14 @@ public class oPlotMatrix {
     public boolean isResizing(oPlot p, int x, int y) {
         boolean ret = false;
         if (x > p.iResizeX && x < (p.iResizeX + p.iResizeW) && y > p.iResizeY && y < (p.iResizeY + p.iResizeH)) {
+            ret = true;
+        }
+        return ret;
+    }
+
+    public boolean isEditing(oPlot p, int x, int y){
+        boolean ret = false;
+        if (x > p.iContentsX && x < (p.iContentsX + p.iContentsW) && y > p.iContentsY && y < (p.iContentsY + p.iContentsH)) {
             ret = true;
         }
         return ret;
