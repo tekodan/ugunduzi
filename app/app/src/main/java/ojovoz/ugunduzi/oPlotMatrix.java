@@ -24,8 +24,6 @@ public class oPlotMatrix {
     int startX;
     int startY;
 
-    boolean requestRedraw = false;
-
     oPlotMatrix() {
         plots = new ArrayList<>();
         matrix = new matrixContent[4][4];
@@ -50,7 +48,8 @@ public class oPlotMatrix {
         currentPlot = p;
     }
 
-    public void addPlot(int iMoveW, int iMoveH, int iResizeW, int iResizeH) {
+    public boolean addPlot(int iMoveW, int iMoveH, int iResizeW, int iResizeH) {
+        boolean ret;
         matrixContent cell = findFirstAvailablePosition();
         if (cell.point != null) {
             oPlot p = new oPlot(cell.point.x, cell.point.y, displayWidth / 4, displayHeight / 4);
@@ -58,7 +57,11 @@ public class oPlotMatrix {
             setCurrentPlot(p);
             plots.add(p);
             cell.plot = p;
+            ret=true;
+        } else {
+            ret=false;
         }
+        return ret;
     }
 
     public matrixContent findFirstAvailablePosition() {
@@ -102,11 +105,10 @@ public class oPlotMatrix {
 
         } else if (e.getActionMasked() == MotionEvent.ACTION_UP) {
             if (currentPlot != null) {
-                //TODO snap to grid here! (move and resize)
-                currentPlot.state = 0;
                 if (ghostPlot != null) {
+                    snapToGrid();
+                    currentPlot.state = 0;
                     ghostPlot = null;
-                    requestRedraw = true;
                 }
                 return true;
             } else {
@@ -203,6 +205,95 @@ public class oPlotMatrix {
             ghostPlot.h = h - varY;
             startY = y;
         }
+    }
+
+    public void snapToGrid() {
+        float destX = ghostPlot.x;
+        float destY = ghostPlot.y;
+        float destW = ghostPlot.w;
+        float destH = ghostPlot.h;
+
+        int closestX = 0;
+        int matrixX = 0;
+        int matrixY = 0;
+        int closestY = 0;
+        double minDist = 9999;
+
+        for (int ix = 0; ix < displayWidth; ix += (displayWidth / 4)) {
+            for (int iy = 0; iy < displayHeight; iy += (displayHeight / 4)) {
+                double dist = Math.hypot(destX - ix, destY - iy);
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestX = ix;
+                    closestY = iy;
+                    matrixX = Math.round(ix / (displayWidth / 4));
+                    matrixY = Math.round(iy / (displayHeight / 4));
+                }
+            }
+        }
+
+        if (fitInMatrix(matrixX, matrixY, destW, destH)) {
+            currentPlot.x = closestX;
+            currentPlot.y = closestY;
+            currentPlot.w = Math.round(destW / (displayWidth / 4)) * (displayWidth / 4);
+            currentPlot.h = Math.round(destH / (displayHeight / 4)) * (displayHeight / 4);
+            currentPlot.calculateAreasXY();
+        }
+
+    }
+
+    public boolean fitInMatrix(int matrixX, int matrixY, float destW, float destH) {
+        boolean ret = true;
+        int matrixX2 = matrixX + Math.round(destW / (displayWidth / 4));
+        int matrixY2 = matrixY + Math.round(destH / (displayHeight / 4));
+        for (int y = matrixY; y < matrixY2; y++) {
+            if (ret) {
+                for (int x = matrixX; x < matrixX2; x++) {
+                    matrixContent mc = matrix[x][y];
+                    if (mc.plot != null && mc.plot != currentPlot) {
+                        ret = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if (ret) {
+            deletePlotFromMatrix(currentPlot);
+            addPlotToMatrix(currentPlot, matrixX, matrixY, matrixX2, matrixY2);
+        }
+        return ret;
+    }
+
+    public void deletePlotFromMatrix(oPlot p) {
+        for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 4; x++) {
+                matrixContent mc = matrix[x][y];
+                if (mc.plot == p) {
+                    mc.plot = null;
+                }
+            }
+        }
+    }
+
+    public void addPlotToMatrix(oPlot p, int x1, int y1, int x2, int y2) {
+        for (int y = y1; y < y2; y++) {
+            for (int x = x1; x < x2; x++) {
+                matrixContent mc = matrix[x][y];
+                mc.plot = p;
+            }
+        }
+    }
+
+    public boolean deletePlot(){
+        boolean ret=true;
+        if(plots.size()>1){
+            plots.remove(currentPlot);
+            deletePlotFromMatrix(currentPlot);
+            currentPlot=null;
+        } else {
+            ret=false;
+        }
+        return ret;
     }
 
     public ArrayList<oPlot> getPlots() {

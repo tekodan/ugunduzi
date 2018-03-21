@@ -20,4 +20,16 @@
     <string name="defaultFarmNamePrefix">Shamba </string>
     <string name="farmNameCannotBeEmptyMessage">Farm name cannot be empty</string>
     <string name="farmSizeMustBeAboveZero">Farm size must be above zero</string>
+    <string name="opAddPlot">Add plot</string>
+    <string name="opSaveFarm">Save farm</string>
+    <string name="opSwitchUser">Switch user</string>
+    <string name="farmHasNotBeenSavedMessage">This farm has not been saved.</string>
+    <string name="logoutConfirmMessage">Do you really want to log out?</string>
+    <string name="yesButtonText">Yes</string>
+    <string name="noButtonText">No</string>
+    <string name="selectPlotMessage">You must select a plot</string>
+    <string name="farmMustHavePlotMessage">Farm must have at least one plot.</string>
+    <string name="noSpaceForNewPlotMessage">There is no space for a new plot.</string>
+    <string name="opDeletePlot">Delete selected plot</string>
+    <string name="deletePlotConfirmMessage">Do you really want to delete the selected plot?</string>
 </resources>

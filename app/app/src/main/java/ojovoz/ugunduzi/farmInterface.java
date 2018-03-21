@@ -2,6 +2,8 @@ package ojovoz.ugunduzi;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -9,8 +11,10 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -30,7 +34,7 @@ public class farmInterface extends AppCompatActivity {
 
     RelativeLayout relativeLayout;
     Paint paint;
-    View view;
+    View canvasView;
     Bitmap bitmap;
     Canvas canvas;
 
@@ -44,6 +48,7 @@ public class farmInterface extends AppCompatActivity {
     String user;
     int userId;
     boolean newFarm;
+    boolean bFarmSaved;
 
     oPlotMatrix plotMatrix;
 
@@ -59,6 +64,7 @@ public class farmInterface extends AppCompatActivity {
         newFarm = getIntent().getExtras().getBoolean("newFarm");
 
         if(newFarm){
+            bFarmSaved=false;
             this.setTitle(R.string.drawNewFarmTitle);
             defineFarmNameAcres(1);
         }
@@ -86,9 +92,9 @@ public class farmInterface extends AppCompatActivity {
                 displayHeight = (int)(metrics.heightPixels-(contentViewTop*metrics.density));
 
                 relativeLayout = (RelativeLayout)findViewById(R.id.drawingCanvas);
-                view = new SketchSheetView(farmInterface.this,displayWidth,displayHeight);
+                canvasView = new SketchSheetView(farmInterface.this,displayWidth,displayHeight);
                 paint = new Paint();
-                relativeLayout.addView(view, new LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+                relativeLayout.addView(canvasView, new LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
                 paint.setDither(true);
                 paint.setColor(ContextCompat.getColor(farmInterface.this, R.color.colorDraw));
                 paint.setStyle(Paint.Style.STROKE);
@@ -102,6 +108,92 @@ public class farmInterface extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(android.view.Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        menu.add(0, 0, 0, R.string.opAddPlot);
+        menu.add(1, 1, 1, R.string.opDeletePlot);
+        menu.add(2, 2, 2, R.string.opSaveFarm);
+        menu.add(3, 3, 3, R.string.opSwitchUser);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case 0:
+                addPlot();
+                canvasView.invalidate();
+                break;
+            case 1:
+                deleteSelectedPlot();
+                canvasView.invalidate();
+                break;
+            case 2:
+                //
+                break;
+            case 3:
+                confirmExit();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void addPlot(){
+        if(!plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight())){
+            Toast.makeText(this, R.string.noSpaceForNewPlotMessage, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void deleteSelectedPlot(){
+        if(plotMatrix.currentPlot!=null){
+            AlertDialog.Builder logoutDialog = new AlertDialog.Builder(this);
+            logoutDialog.setMessage(R.string.deletePlotConfirmMessage);
+            logoutDialog.setNegativeButton(R.string.noButtonText,null);
+            logoutDialog.setPositiveButton(R.string.yesButtonText, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    if(!plotMatrix.deletePlot()){
+                        Toast.makeText(farmInterface.this, R.string.farmMustHavePlotMessage, Toast.LENGTH_SHORT).show();
+                    } else {
+                        canvasView.invalidate();
+                    }
+                }
+            });
+            logoutDialog.create();
+            logoutDialog.show();
+        } else {
+            Toast.makeText(this, R.string.selectPlotMessage, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void confirmExit(){
+        String msg;
+        AlertDialog.Builder logoutDialog = new AlertDialog.Builder(this);
+        if(!bFarmSaved){
+            msg=getString(R.string.farmHasNotBeenSavedMessage) + " " + getString(R.string.logoutConfirmMessage);
+        } else {
+            msg=getString(R.string.logoutConfirmMessage);
+        }
+        logoutDialog.setMessage(msg);
+        logoutDialog.setNegativeButton(R.string.noButtonText,null);
+        logoutDialog.setPositiveButton(R.string.yesButtonText, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                goToLogin();
+            }
+        });
+        logoutDialog.create();
+        logoutDialog.show();
+    }
+
+    public void goToLogin(){
+        prefs.savePreference("user","");
+        final Context context = this;
+        Intent i = new Intent(context, login.class);
+        startActivity(i);
+        finish();
     }
 
     public void defineFarmNameAcres(int n){
@@ -183,18 +275,13 @@ public class farmInterface extends AppCompatActivity {
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
 
-            if(plotMatrix.requestRedraw){
-                canvas.drawColor(ContextCompat.getColor(context,R.color.colorWhite));
-                plotMatrix.requestRedraw=false;
-            }
-
             Iterator<oPlot> iterator = plotMatrix.getPlots().iterator();
             while (iterator.hasNext()) {
                 oPlot plot = iterator.next();
-                if(plot.state==2 || plot.state==3) {
-                    drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDrawFaded), ContextCompat.getColor(context, R.color.colorFillFaded), iconMoveFaded, iconResizeFaded);
-                } else {
+                if(plot==plotMatrix.currentPlot) {
                     drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDraw), ContextCompat.getColor(context, R.color.colorFillDefault), iconMove, iconResize);
+                } else {
+                    drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDrawFaded), ContextCompat.getColor(context, R.color.colorFillFaded), iconMoveFaded, iconResizeFaded);
                 }
             }
 
