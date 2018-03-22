@@ -32,4 +32,10 @@
     <string name="noSpaceForNewPlotMessage">There is no space for a new plot.</string>
     <string name="opDeletePlot">Delete selected plot</string>
     <string name="deletePlotConfirmMessage">Do you really want to delete the selected plot?</string>
+    <string name="opEditFarmNameSize">Edit farm name and size</string>
+    <string name="enterCrop1Label">Crop one</string>
+    <string name="textNone">None</string>
+    <string name="enterCrop2Label">Crop two</string>
+    <string name="enterTreatment1Label">Treatment one</string>
+    <string name="enterTreatment2Label">Treatment two</string>
 </resources>

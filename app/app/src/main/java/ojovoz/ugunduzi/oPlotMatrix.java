@@ -1,5 +1,6 @@
 package ojovoz.ugunduzi;
 
+import android.content.Context;
 import android.graphics.Point;
 import android.view.MotionEvent;
 

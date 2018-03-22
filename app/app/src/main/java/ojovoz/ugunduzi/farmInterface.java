@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -18,13 +19,16 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -51,8 +55,22 @@ public class farmInterface extends AppCompatActivity {
     int userId;
     boolean newFarm;
     boolean bFarmSaved;
+    String farmName="";
+    int farmSize;
 
     oPlotMatrix plotMatrix;
+
+    ArrayList<oCrop> cropList;
+    public CharSequence cropNamesArray[];
+    int editingCrop;
+    oCrop editCrop1;
+    oCrop editCrop2;
+    oTreatment editTreatment1;
+    oTreatment editTreatment2;
+
+    ArrayList<oTreatment> treatmentList;
+    public CharSequence treatmentNamesArray[];
+    int editingTreatment;
 
     preferenceManager prefs;
 
@@ -65,10 +83,19 @@ public class farmInterface extends AppCompatActivity {
         userId=getIntent().getExtras().getInt("userId");
         newFarm = getIntent().getExtras().getBoolean("newFarm");
 
+        oCrop seed = new oCrop(this);
+        cropList = seed.getCrops();
+        cropNamesArray = seed.getCropNames(true).toArray(new CharSequence[cropList.size()]);
+
+        oTreatment start = new oTreatment(this);
+        treatmentList = start.getTreatments();
+        treatmentNamesArray = start.getTreatmentNames(true).toArray(new CharSequence[treatmentList.size()]);
+
         if(newFarm){
             bFarmSaved=false;
             this.setTitle(R.string.drawNewFarmTitle);
-            defineFarmNameAcres(1);
+            int n=1; //TODO: if not single farm, get default farm number
+            defineFarmNameAcres(n,false);
         }
 
         prefs = new preferenceManager(this);
@@ -120,7 +147,8 @@ public class farmInterface extends AppCompatActivity {
         super.onCreateOptionsMenu(menu);
         menu.add(0, 0, 0, R.string.opAddPlot);
         menu.add(1, 1, 1, R.string.opDeletePlot);
-        menu.add(2, 2, 2, R.string.opSaveFarm);
+        menu.add(2, 2, 2, R.string.opEditFarmNameSize);
+        menu.add(3, 3, 3, R.string.opSaveFarm);
         menu.add(3, 3, 3, R.string.opSwitchUser);
         return true;
     }
@@ -137,9 +165,13 @@ public class farmInterface extends AppCompatActivity {
                 canvasView.invalidate();
                 break;
             case 2:
-                //
+                int n=1; //TODO: if not single farm, get default farm number
+                defineFarmNameAcres(n,true);
                 break;
             case 3:
+                //
+                break;
+            case 4:
                 confirmExit();
         }
         return super.onOptionsItemSelected(item);
@@ -201,31 +233,247 @@ public class farmInterface extends AppCompatActivity {
         finish();
     }
 
-    public void defineFarmNameAcres(int n){
+    public void definePlotContents(){
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_define_plot_contents);
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.setCancelable(true);
+        dialog.getWindow().setLayout(displayWidth-50,displayHeight-100);
+
+        Button okButton = (Button)dialog.findViewById(R.id.okButton);
+        okButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                switch (v.getId()) {
+                    case R.id.okButton:
+                        plotMatrix.currentPlot.crop1 = editCrop1;
+                        if(editCrop1==editCrop2){
+                            plotMatrix.currentPlot.crop2 = null;
+                        } else {
+                            plotMatrix.currentPlot.crop2 = editCrop2;
+                        }
+                        plotMatrix.currentPlot.treatment1=editTreatment1;
+                        if(editTreatment1==editTreatment2) {
+                            plotMatrix.currentPlot.treatment2 = null;
+                        } else {
+                            plotMatrix.currentPlot.treatment2 = editTreatment2;
+                        }
+                        editCrop1=null;
+                        editCrop2=null;
+                        editTreatment1=null;
+                        editTreatment2=null;
+                        dialog.dismiss();
+                        canvasView.invalidate();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+
+        Button crop1 = (Button)dialog.findViewById(R.id.crop1Button);
+        if(plotMatrix.currentPlot.crop1!=null){
+            crop1.setText(plotMatrix.currentPlot.crop1.name);
+            editCrop1=plotMatrix.currentPlot.crop1;
+        }
+        crop1.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()) {
+                    case R.id.crop1Button:
+                        editingCrop=1;
+                        showCropSelector(dialog);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+
+        Button crop2 = (Button)dialog.findViewById(R.id.crop2Button);
+        if(plotMatrix.currentPlot.crop2!=null){
+            crop2.setText(plotMatrix.currentPlot.crop2.name);
+            editCrop2=plotMatrix.currentPlot.crop2;
+        }
+        crop2.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()) {
+                    case R.id.crop2Button:
+                        editingCrop=2;
+                        showCropSelector(dialog);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+
+        Button treatment1 = (Button)dialog.findViewById(R.id.treatment1Button);
+        if(plotMatrix.currentPlot.treatment1!=null){
+            treatment1.setText(plotMatrix.currentPlot.treatment1.name);
+            editTreatment1=plotMatrix.currentPlot.treatment1;
+        }
+        treatment1.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()) {
+                    case R.id.treatment1Button:
+                        editingTreatment=1;
+                        showTreatmentSelector(dialog);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+
+        Button treatment2 = (Button)dialog.findViewById(R.id.treatment2Button);
+        if(plotMatrix.currentPlot.treatment2!=null){
+            treatment2.setText(plotMatrix.currentPlot.treatment2.name);
+            editTreatment2=plotMatrix.currentPlot.treatment2;
+        }
+        treatment2.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()) {
+                    case R.id.treatment2Button:
+                        editingTreatment=2;
+                        showTreatmentSelector(dialog);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+
+        dialog.show();
+    }
+
+    public void showCropSelector(Dialog d){
+        final Dialog dialog = d;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setNegativeButton(R.string.cancelButtonText, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        final ListAdapter adapter = new ArrayAdapter<>(this,R.layout.checked_list_template,cropNamesArray);
+        builder.setSingleChoiceItems(adapter,-1,new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if(i>=0) {
+                    String chosenCrop=cropNamesArray[i].toString();
+                    Button cropButton;
+                    switch(editingCrop){
+                        case 1:
+                            cropButton = (Button)dialog.findViewById(R.id.crop1Button);
+                            cropButton.setText(chosenCrop);
+                            if(i>0) {
+                                editCrop1 = cropList.get(i-1);
+                            } else {
+                                editCrop1 = null;
+                            }
+                            break;
+                        case 2:
+                            cropButton = (Button)dialog.findViewById(R.id.crop2Button);
+                            cropButton.setText(chosenCrop);
+                            if(i>0) {
+                                editCrop2 = cropList.get(i-1);
+                            } else {
+                                editCrop2 = null;
+                            }
+                            break;
+                    }
+
+                }
+                dialogInterface.dismiss();
+
+            }
+        });
+        AlertDialog dialogCrops = builder.create();
+        dialogCrops.show();
+    }
+
+    public void showTreatmentSelector(Dialog d){
+        final Dialog dialog = d;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setNegativeButton(R.string.cancelButtonText, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        final ListAdapter adapter = new ArrayAdapter<>(this,R.layout.checked_list_template,treatmentNamesArray);
+        builder.setSingleChoiceItems(adapter,-1,new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if(i>=0) {
+                    String chosenTreatment=treatmentNamesArray[i].toString();
+                    Button treatmentButton;
+                    switch(editingTreatment){
+                        case 1:
+                            treatmentButton = (Button)dialog.findViewById(R.id.treatment1Button);
+                            treatmentButton.setText(chosenTreatment);
+                            if(i>0) {
+                                editTreatment1 = treatmentList.get(i-1);
+                            } else {
+                                editTreatment1 = null;
+                            }
+                            break;
+                        case 2:
+                            treatmentButton = (Button)dialog.findViewById(R.id.treatment2Button);
+                            treatmentButton.setText(chosenTreatment);
+                            if(i>0) {
+                                editTreatment2 = treatmentList.get(i-1);
+                            } else {
+                                editTreatment2 = null;
+                            }
+                            break;
+                    }
+
+                }
+                dialogInterface.dismiss();
+
+            }
+        });
+        AlertDialog dialogTreatments = builder.create();
+        dialogTreatments.show();
+    }
+
+    public void defineFarmNameAcres(int n, boolean cancellable){
 
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_define_new_farm);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(cancellable);
+        dialog.setCancelable(cancellable);
 
-        EditText fName = (EditText)dialog.findViewById(R.id.newFarm);
-        String defaultFarmName = getString(R.string.defaultFarmNamePrefix)+" "+String.valueOf(n);
-        if(!newFarm){
-            //TODO: add a number after default name
+        EditText et = (EditText)dialog.findViewById(R.id.newFarm);
+        String defaultFarmName="";
+        if(!farmName.isEmpty()){
+            defaultFarmName = farmName;
+        } else {
+            defaultFarmName = getString(R.string.defaultFarmNamePrefix) + " " + String.valueOf(n);
         }
-        fName.setText(defaultFarmName);
+        et.setText(defaultFarmName);
 
         EditText fSize = (EditText)dialog.findViewById(R.id.acres);
-        fSize.setText(Integer.toString(1));
+        if(farmSize>0){
+            fSize.setText(Integer.toString(farmSize));
+        } else {
+            fSize.setText(Integer.toString(1));
+        }
 
         Button button = (Button)dialog.findViewById(R.id.okButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                EditText fName = (EditText)dialog.findViewById(R.id.newFarm);
-                String farmName = fName.getText().toString();
-                if(farmName.isEmpty()){
+                EditText et = (EditText)dialog.findViewById(R.id.newFarm);
+                String fName = et.getText().toString();
+                if(fName.isEmpty()){
                     Toast.makeText(view.getContext(), R.string.farmNameCannotBeEmptyMessage, Toast.LENGTH_SHORT).show();
                 } else {
                     //TODO: check if farm name is repeated
@@ -234,7 +482,7 @@ public class farmInterface extends AppCompatActivity {
                     if(farmSize<=0){
                         Toast.makeText(view.getContext(), R.string.farmSizeMustBeAboveZero, Toast.LENGTH_SHORT).show();
                     } else {
-                        updateFarmData(farmName,farmSize);
+                        updateFarmData(fName,farmSize);
                         dialog.dismiss();
                     }
                 }
@@ -249,6 +497,7 @@ public class farmInterface extends AppCompatActivity {
         //TODO: update log: create farm
 
         this.setTitle(this.getTitle()+ ": " + fName);
+        farmName = fName;
     }
 
     class SketchSheetView extends View {
@@ -269,7 +518,13 @@ public class farmInterface extends AppCompatActivity {
 
             if (event.getActionMasked() == MotionEvent.ACTION_DOWN || event.getActionMasked() == MotionEvent.ACTION_MOVE || event.getActionMasked() == MotionEvent.ACTION_UP) {
                 invalidate();
-                return plotMatrix.passEvent(event);
+                boolean b = plotMatrix.passEvent(event);
+                if(plotMatrix.currentPlot!=null) {
+                    if (plotMatrix.currentPlot.state == 4) {
+                        definePlotContents();
+                    }
+                }
+                return b;
             } else {
                 invalidate();
                 return true;
@@ -280,19 +535,57 @@ public class farmInterface extends AppCompatActivity {
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
 
+            int fillColor;
+            int borderColor=ContextCompat.getColor(context, R.color.colorDraw);
+
+            Bitmap iMove;
+            Bitmap iResize;
+            Bitmap iContents;
+
             Iterator<oPlot> iterator = plotMatrix.getPlots().iterator();
             while (iterator.hasNext()) {
                 oPlot plot = iterator.next();
-                if(plot==plotMatrix.currentPlot) {
-                    drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDraw), ContextCompat.getColor(context, R.color.colorFillDefault), iconMove, iconResize, iconContents);
-                } else {
-                    drawPlot(canvas, plot, ContextCompat.getColor(context, R.color.colorDrawFaded), ContextCompat.getColor(context, R.color.colorFillFaded), iconMoveFaded, iconResizeFaded, iconContentsFaded);
-                }
+                fillColor=getFillColor(plot,plot==plotMatrix.currentPlot);
+                borderColor= (plot==plotMatrix.currentPlot) ? ContextCompat.getColor(context, R.color.colorDraw) : ContextCompat.getColor(context, R.color.colorDrawFaded);
+                iMove = (plot==plotMatrix.currentPlot) ? iconMove : iconMoveFaded;
+                iResize = (plot==plotMatrix.currentPlot) ? iconResize : iconResizeFaded;
+                iContents = (plot==plotMatrix.currentPlot) ? iconContents : iconContentsFaded;
+                drawPlot(canvas, plot, borderColor, fillColor, iMove, iResize, iContents);
             }
 
             if(plotMatrix.ghostPlot !=null){
                 drawGhostRectangle(canvas, plotMatrix.ghostPlot, ContextCompat.getColor(context, R.color.colorDrawGhostRectangle));
             }
+        }
+
+        public int getFillColor(oPlot p, boolean strong){
+            int ret=ContextCompat.getColor(context, R.color.colorFillDefault);
+            if(!(p.treatment1==null) && !(p.treatment2==null)){
+                if(p.treatment1.category!=p.treatment2.category){
+                    ret = (strong) ? ContextCompat.getColor(context,R.color.colorFillSoilManagementAndPestControl) : ContextCompat.getColor(context,R.color.colorFillSoilManagementAndPestControlFaded);
+                } else {
+                    if(p.treatment1.category==0){
+                        ret = (strong) ? ContextCompat.getColor(context,R.color.colorFillPestControl) : ContextCompat.getColor(context,R.color.colorFillPestControlFaded);
+                    } else {
+                        ret = (strong) ? ContextCompat.getColor(context,R.color.colorFillSoilManagement) : ContextCompat.getColor(context,R.color.colorFillSoilManagementFaded);
+                    }
+                }
+            } else if(!(p.treatment1==null)){
+                if(p.treatment1.category==0){
+                    ret = (strong) ? ContextCompat.getColor(context,R.color.colorFillPestControl) : ContextCompat.getColor(context,R.color.colorFillPestControlFaded);
+                } else {
+                    ret = (strong) ? ContextCompat.getColor(context,R.color.colorFillSoilManagement) : ContextCompat.getColor(context,R.color.colorFillSoilManagementFaded);
+                }
+            } else if(!(p.treatment2==null)){
+                if(p.treatment2.category==0){
+                    ret = (strong) ? ContextCompat.getColor(context,R.color.colorFillPestControl) : ContextCompat.getColor(context,R.color.colorFillPestControlFaded);
+                } else {
+                    ret = (strong) ? ContextCompat.getColor(context,R.color.colorFillSoilManagement) : ContextCompat.getColor(context,R.color.colorFillSoilManagementFaded);
+                }
+            } else {
+                ret = (strong) ? ContextCompat.getColor(context,R.color.colorFillDefault) : ContextCompat.getColor(context,R.color.colorFillFaded);
+            }
+            return ret;
         }
 
         private void drawPlot(Canvas canvas, oPlot p, int border, int fill, Bitmap iMove, Bitmap iResize, Bitmap iContents){
