@@ -46,10 +46,13 @@ public class farmInterface extends AppCompatActivity {
     int displayHeight;
     Bitmap iconMove;
     Bitmap iconMoveFaded;
+    Bitmap iconMoveActive;
     Bitmap iconResize;
     Bitmap iconResizeFaded;
+    Bitmap iconResizeActive;
     Bitmap iconContents;
     Bitmap iconContentsFaded;
+    Bitmap iconContentsActive;
 
     String user;
     int userId;
@@ -106,6 +109,9 @@ public class farmInterface extends AppCompatActivity {
         iconMoveFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.move_faded);
         iconResizeFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize_faded);
         iconContentsFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.contents_faded);
+        iconMoveActive=BitmapFactory.decodeResource(this.getResources(),R.drawable.move_active);
+        iconResizeActive=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize_active);
+        iconContentsActive=BitmapFactory.decodeResource(this.getResources(),R.drawable.contents_active);
 
 
         plotMatrix = new oPlotMatrix();
@@ -237,9 +243,22 @@ public class farmInterface extends AppCompatActivity {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_define_plot_contents);
-        dialog.setCanceledOnTouchOutside(true);
+        dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(true);
         dialog.getWindow().setLayout(displayWidth-50,displayHeight-100);
+
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                plotMatrix.currentPlot.state=1;
+                editCrop1=null;
+                editCrop2=null;
+                editTreatment1=null;
+                editTreatment2=null;
+                dialog.dismiss();
+                canvasView.invalidate();
+            }
+        });
 
         Button okButton = (Button)dialog.findViewById(R.id.okButton);
         okButton.setOnClickListener(new View.OnClickListener(){
@@ -263,6 +282,7 @@ public class farmInterface extends AppCompatActivity {
                         editCrop2=null;
                         editTreatment1=null;
                         editTreatment2=null;
+                        plotMatrix.currentPlot.state=1;
                         dialog.dismiss();
                         canvasView.invalidate();
                         break;
@@ -275,6 +295,7 @@ public class farmInterface extends AppCompatActivity {
         Button crop1 = (Button)dialog.findViewById(R.id.crop1Button);
         if(plotMatrix.currentPlot.crop1!=null){
             crop1.setText(plotMatrix.currentPlot.crop1.name);
+            crop1.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorBlack));
             editCrop1=plotMatrix.currentPlot.crop1;
         }
         crop1.setOnClickListener(new View.OnClickListener(){
@@ -294,6 +315,7 @@ public class farmInterface extends AppCompatActivity {
         Button crop2 = (Button)dialog.findViewById(R.id.crop2Button);
         if(plotMatrix.currentPlot.crop2!=null){
             crop2.setText(plotMatrix.currentPlot.crop2.name);
+            crop2.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorBlack));
             editCrop2=plotMatrix.currentPlot.crop2;
         }
         crop2.setOnClickListener(new View.OnClickListener(){
@@ -313,6 +335,7 @@ public class farmInterface extends AppCompatActivity {
         Button treatment1 = (Button)dialog.findViewById(R.id.treatment1Button);
         if(plotMatrix.currentPlot.treatment1!=null){
             treatment1.setText(plotMatrix.currentPlot.treatment1.name);
+            treatment1.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorBlack));
             editTreatment1=plotMatrix.currentPlot.treatment1;
         }
         treatment1.setOnClickListener(new View.OnClickListener(){
@@ -332,6 +355,7 @@ public class farmInterface extends AppCompatActivity {
         Button treatment2 = (Button)dialog.findViewById(R.id.treatment2Button);
         if(plotMatrix.currentPlot.treatment2!=null){
             treatment2.setText(plotMatrix.currentPlot.treatment2.name);
+            treatment2.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorBlack));
             editTreatment2=plotMatrix.currentPlot.treatment2;
         }
         treatment2.setOnClickListener(new View.OnClickListener(){
@@ -373,8 +397,10 @@ public class farmInterface extends AppCompatActivity {
                             cropButton.setText(chosenCrop);
                             if(i>0) {
                                 editCrop1 = cropList.get(i-1);
+                                cropButton.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorBlack));
                             } else {
                                 editCrop1 = null;
+                                cropButton.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorWhite));
                             }
                             break;
                         case 2:
@@ -382,8 +408,10 @@ public class farmInterface extends AppCompatActivity {
                             cropButton.setText(chosenCrop);
                             if(i>0) {
                                 editCrop2 = cropList.get(i-1);
+                                cropButton.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorBlack));
                             } else {
                                 editCrop2 = null;
+                                cropButton.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorWhite));
                             }
                             break;
                     }
@@ -419,8 +447,10 @@ public class farmInterface extends AppCompatActivity {
                             treatmentButton.setText(chosenTreatment);
                             if(i>0) {
                                 editTreatment1 = treatmentList.get(i-1);
+                                treatmentButton.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorBlack));
                             } else {
                                 editTreatment1 = null;
+                                treatmentButton.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorWhite));
                             }
                             break;
                         case 2:
@@ -428,8 +458,10 @@ public class farmInterface extends AppCompatActivity {
                             treatmentButton.setText(chosenTreatment);
                             if(i>0) {
                                 editTreatment2 = treatmentList.get(i-1);
+                                treatmentButton.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorBlack));
                             } else {
                                 editTreatment2 = null;
+                                treatmentButton.setTextColor(ContextCompat.getColor(dialog.getContext(),R.color.colorWhite));
                             }
                             break;
                     }
@@ -547,9 +579,9 @@ public class farmInterface extends AppCompatActivity {
                 oPlot plot = iterator.next();
                 fillColor=getFillColor(plot,plot==plotMatrix.currentPlot);
                 borderColor= (plot==plotMatrix.currentPlot) ? ContextCompat.getColor(context, R.color.colorDraw) : ContextCompat.getColor(context, R.color.colorDrawFaded);
-                iMove = (plot==plotMatrix.currentPlot) ? iconMove : iconMoveFaded;
-                iResize = (plot==plotMatrix.currentPlot) ? iconResize : iconResizeFaded;
-                iContents = (plot==plotMatrix.currentPlot) ? iconContents : iconContentsFaded;
+                iMove = (plot==plotMatrix.currentPlot) ? (plotMatrix.currentPlot.state==2) ? iconMoveActive : iconMove  : iconMoveFaded;
+                iResize = (plot==plotMatrix.currentPlot) ? (plotMatrix.currentPlot.state==3) ? iconResizeActive : iconResize : iconResizeFaded;
+                iContents = (plot==plotMatrix.currentPlot) ? (plotMatrix.currentPlot.state==4) ? iconContentsActive : iconContents : iconContentsFaded;
                 drawPlot(canvas, plot, borderColor, fillColor, iMove, iResize, iContents);
             }
 

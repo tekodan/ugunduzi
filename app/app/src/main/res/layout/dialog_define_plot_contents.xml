@@ -33,7 +33,7 @@
                 android:height="40dp"
                 android:background="@drawable/button_background_light"
                 android:text="@string/textNone"
-                android:textColor="@color/colorBlack"
+                android:textColor="@color/colorWhite"
                 android:textSize="20dp" />
 
             <TextView
@@ -53,7 +53,7 @@
                 android:height="40dp"
                 android:background="@drawable/button_background_light"
                 android:text="@string/textNone"
-                android:textColor="@color/colorBlack"
+                android:textColor="@color/colorWhite"
                 android:textSize="20dp" />
 
             <TextView
@@ -73,7 +73,7 @@
                 android:height="40dp"
                 android:background="@drawable/button_background_light"
                 android:text="@string/textNone"
-                android:textColor="@color/colorBlack"
+                android:textColor="@color/colorWhite"
                 android:textSize="20dp" />
 
             <TextView
@@ -93,7 +93,7 @@
                 android:height="40dp"
                 android:background="@drawable/button_background_light"
                 android:text="@string/textNone"
-                android:textColor="@color/colorBlack"
+                android:textColor="@color/colorWhite"
                 android:textSize="20dp" />
 
             <Button
