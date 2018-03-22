@@ -78,7 +78,7 @@ public class farmInterface extends AppCompatActivity {
         iconContents=BitmapFactory.decodeResource(this.getResources(),R.drawable.contents);
         iconMoveFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.move_faded);
         iconResizeFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize_faded);
-        iconResizeFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.contents_faded);
+        iconContentsFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.contents_faded);
 
 
         plotMatrix = new oPlotMatrix();

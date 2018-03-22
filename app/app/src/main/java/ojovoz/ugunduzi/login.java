@@ -259,8 +259,10 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                                 updateAutocomplete();
                             } else {
                                 if (!uAS.isEmpty() && !uPS.isEmpty()) {
-                                    connectionTask = 1;
-                                    createNewUser(uAS, uPS);
+                                    if(!uAS.equals("reset") && !uAS.equals("admin")) {
+                                        connectionTask = 1;
+                                        createNewUser(uAS, uPS);
+                                    }
                                 } else {
                                     updateAutocomplete();
                                 }

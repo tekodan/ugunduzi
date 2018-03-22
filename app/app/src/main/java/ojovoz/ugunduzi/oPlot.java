@@ -25,6 +25,11 @@ public class oPlot {
     public int iContentsW;
     public int iContentsH;
 
+    public oCrop crop1;
+    public oCrop crop2;
+    public oTreatment treatment1;
+    public oTreatment treatment2;
+
     oPlot(){
         state=0;
     }
