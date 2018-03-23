@@ -30,6 +30,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
 
     public String server = "";
     public String user = "";
+    public String userPass = "";
     private promptDialog dlg = null;
     private preferenceManager prefs;
     private boolean dataDownloaded = false;
@@ -63,6 +64,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
         if (!user.equals("")) {
             if(dataDownloaded){
                 userId = prefs.getPreferenceInt("userId");
+                userPass = prefs.getPreference("userPass");
                 startNextActivity();
             } else {
                 downloadData();
@@ -202,6 +204,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                     //TODO: user already exists. Ask: "Download user data? Y/N"
                     user = uAS;
                     prefs.savePreference("user", uAS);
+                    prefs.savePreference("userPass", uPS);
                     prefs.savePreferenceInt("userId", userId);
                     startNextActivity();
                 } else if (userId == 0) {
@@ -282,6 +285,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                             prefs.savePreferenceInt("userId", userId);
                         }
                         prefs.savePreference("user", uAS);
+                        prefs.savePreference("userPass", uPS);
                         user=uAS;
                         oUser newUser = new oUser(this);
                         newUser.addNewUser(userId, uAS, uPS);
@@ -325,6 +329,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                 Intent i = new Intent(context, farmInterface.class);
                 i.putExtra("user",user);
                 i.putExtra("userId",userId);
+                i.putExtra("userPass",userPass);
                 i.putExtra("newFarm",true);
                 startActivity(i);
                 finish();
@@ -341,6 +346,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                 Intent i = new Intent(context, farmInterface.class);
                 i.putExtra("user",user);
                 i.putExtra("userId",userId);
+                i.putExtra("userPass",userPass);
                 i.putExtra("newFarm",true);
                 startActivity(i);
                 finish();
@@ -353,6 +359,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
             Intent i = new Intent(context, farmInterface.class);
             i.putExtra("user",user);
             i.putExtra("userId",userId);
+            i.putExtra("userPass",userPass);
             i.putExtra("newFarm",true);
             startActivity(i);
             finish();

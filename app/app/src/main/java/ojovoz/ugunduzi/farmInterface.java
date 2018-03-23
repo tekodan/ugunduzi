@@ -56,6 +56,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     Bitmap iconContentsActive;
 
     String user;
+    String userPass;
     int userId;
     boolean newFarm;
     boolean bFarmSaved;
@@ -87,6 +88,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         setContentView(R.layout.activity_farm_interface);
 
         user=getIntent().getExtras().getString("user");
+        userPass=getIntent().getExtras().getString("userPass");
         userId=getIntent().getExtras().getInt("userId");
         newFarm = getIntent().getExtras().getBoolean("newFarm");
 
@@ -552,7 +554,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         fName = fName.replaceAll(";", " ");
 
         String sMatrix = plotMatrix.toString();
-        String saveString = user + ";" + fName + ";" + String.valueOf(farmSize) + ";" + sMatrix;
+        String saveString = user + ";" + userPass + ";" + fName + ";" + String.valueOf(farmSize) + ";" + sMatrix;
         httpConnection http = new httpConnection(this, this);
         if (http.isOnline()) {
             CharSequence dialogTitle = getString(R.string.createNewFarmLabel);
