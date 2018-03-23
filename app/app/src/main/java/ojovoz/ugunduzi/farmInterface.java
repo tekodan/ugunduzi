@@ -1,6 +1,7 @@
 package ojovoz.ugunduzi;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -34,7 +35,7 @@ import java.util.Iterator;
 /**
  * Created by Eugenio on 13/03/2018.
  */
-public class farmInterface extends AppCompatActivity {
+public class farmInterface extends AppCompatActivity implements httpConnection.AsyncResponse {
 
     RelativeLayout relativeLayout;
     Paint paint;
@@ -77,6 +78,9 @@ public class farmInterface extends AppCompatActivity {
 
     preferenceManager prefs;
 
+    boolean bConnecting=false;
+    String server;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,6 +106,7 @@ public class farmInterface extends AppCompatActivity {
         }
 
         prefs = new preferenceManager(this);
+        server = prefs.getPreference("server");
 
         iconMove=BitmapFactory.decodeResource(this.getResources(),R.drawable.move);
         iconResize=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize);
@@ -175,7 +180,7 @@ public class farmInterface extends AppCompatActivity {
                 defineFarmNameAcres(n,true);
                 break;
             case 3:
-                //
+                saveFarm();
                 break;
             case 4:
                 confirmExit();
@@ -266,11 +271,19 @@ public class farmInterface extends AppCompatActivity {
             public void onClick(View v){
                 switch (v.getId()) {
                     case R.id.okButton:
+                        if(editCrop1==null && editCrop2!=null){
+                            editCrop1=editCrop2;
+                            editCrop2=null;
+                        }
                         plotMatrix.currentPlot.crop1 = editCrop1;
                         if(editCrop1==editCrop2){
                             plotMatrix.currentPlot.crop2 = null;
                         } else {
                             plotMatrix.currentPlot.crop2 = editCrop2;
+                        }
+                        if(editTreatment1==null && editTreatment2!=null){
+                            editTreatment1=editTreatment2;
+                            editTreatment2=null;
                         }
                         plotMatrix.currentPlot.treatment1=editTreatment1;
                         if(editTreatment1==editTreatment2) {
@@ -528,8 +541,51 @@ public class farmInterface extends AppCompatActivity {
         prefs.appendIfNewValue(user+"_farms",fName,",");
         //TODO: update log: create farm
 
-        this.setTitle(this.getTitle()+ ": " + fName);
+        this.setTitle(getString(R.string.drawNewFarmTitle)+ ": " + fName);
         farmName = fName;
+        farmSize = fSize;
+    }
+
+    public void saveFarm(){
+        ProgressDialog dialog;
+        String fName = farmName.replaceAll(" ", "_");
+        fName = fName.replaceAll(";", " ");
+
+        String sMatrix = plotMatrix.toString();
+        String saveString = user + ";" + fName + ";" + String.valueOf(farmSize) + ";" + sMatrix;
+        httpConnection http = new httpConnection(this, this);
+        if (http.isOnline()) {
+            CharSequence dialogTitle = getString(R.string.createNewFarmLabel);
+
+            dialog = new ProgressDialog(this);
+            dialog.setCancelable(true);
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.setMessage(dialogTitle);
+            dialog.setIndeterminate(true);
+            dialog.show();
+            dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface d) {
+                    bConnecting = false;
+                }
+            });
+            doCreateNewFarm(saveString);
+        }
+    }
+
+    public void doCreateNewFarm(String s){
+        httpConnection http = new httpConnection(this, this);
+        if (http.isOnline()) {
+            if (!bConnecting) {
+                bConnecting = true;
+                http.execute(server + "/mobile/create_new_farm.php?farm=" + s, "");
+            }
+        }
+    }
+
+    @Override
+    public void processFinish(String output) {
+
     }
 
     class SketchSheetView extends View {

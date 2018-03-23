@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net
 --
 -- Servidor: 192.168.86.55
--- Tiempo de generación: 22-03-2018 a las 01:24:25
+-- Tiempo de generación: 23-03-2018 a las 18:01:34
 -- Versión del servidor: 5.5.57-0+deb7u1-log
 -- Versión de PHP: 5.3.29-1~dotdeb.0
 
@@ -117,6 +117,7 @@ CREATE TABLE IF NOT EXISTS `log` (
 
 CREATE TABLE IF NOT EXISTS `plot` (
   `plot_id` int(10) unsigned NOT NULL,
+  `internal_plot_id` int(10) unsigned NOT NULL,
   `configuration_id` int(10) unsigned NOT NULL,
   `plot_x` int(10) unsigned NOT NULL,
   `plot_y` int(10) unsigned NOT NULL,
@@ -183,7 +184,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `user_group` varchar(30) NOT NULL,
   `user_association` varchar(30) NOT NULL,
   `user_location` varchar(30) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 --
 -- Volcado de datos para la tabla `user`
@@ -321,7 +322,7 @@ ALTER TABLE `units`
 -- AUTO_INCREMENT de la tabla `user`
 --
 ALTER TABLE `user`
-  MODIFY `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=6;
+  MODIFY `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

@@ -5,6 +5,8 @@ package ojovoz.ugunduzi;
  */
 public class oPlot {
 
+    public int id;
+
     public int x;
     public int y;
     public float w;

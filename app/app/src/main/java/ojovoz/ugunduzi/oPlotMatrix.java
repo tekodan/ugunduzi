@@ -25,6 +25,8 @@ public class oPlotMatrix {
     int startX;
     int startY;
 
+    int plotIndex=0;
+
     oPlotMatrix() {
         plots = new ArrayList<>();
         matrix = new matrixContent[4][4];
@@ -56,6 +58,8 @@ public class oPlotMatrix {
             oPlot p = new oPlot(cell.point.x, cell.point.y, displayWidth / 4, displayHeight / 4);
             p.addAreas(iMoveW, iMoveH, iResizeW, iResizeH, iContentsW, iContentsH);
             setCurrentPlot(p);
+            p.id=plotIndex;
+            plotIndex++;
             plots.add(p);
             cell.plot = p;
             ret=true;
@@ -319,5 +323,42 @@ public class oPlotMatrix {
             plot = rP;
             point = rPoint;
         }
+    }
+
+    public String toString(){
+        String ret="";
+        boolean bFound;
+        Iterator<oPlot> iterator = plots.iterator();
+        while (iterator.hasNext()) {
+            oPlot plot = iterator.next();
+            String plotString=String.valueOf(plot.id) + ";";
+            bFound=false;
+            for (int y = 0; y < 4; y++) {
+                if(!bFound) {
+                    for (int x = 0; x < 4; x++) {
+                        matrixContent mc = matrix[x][y];
+                        if (mc.plot == plot) {
+                            plotString = plotString + String.valueOf(x) + ";" + String.valueOf(y) + ";";
+                            bFound=true;
+                            break;
+                        }
+                    }
+                } else {
+                    break;
+                }
+            }
+            plotString = plotString + String.valueOf(Math.round(plot.w/(displayWidth/4))) + ";" + String.valueOf(Math.round(plot.h/(displayHeight/4))) + ";";
+            String crop1 = (plot.crop1!=null) ? String.valueOf(plot.crop1.id) : "0";
+            String crop2 = (plot.crop2!=null) ? String.valueOf(plot.crop2.id) : "0";
+            String treatment1 = (plot.treatment1!=null) ? String.valueOf(plot.treatment1.id) : "0";
+            String treatment2 = (plot.treatment2!=null) ? String.valueOf(plot.treatment2.id) : "0";
+            plotString = plotString + crop1 + ";" + crop2 + ";" + treatment1 + ";" + treatment2;
+            if(ret.isEmpty()){
+                ret=plotString;
+            } else {
+                ret=ret + ";" + plotString;
+            }
+        }
+        return ret;
     }
 }

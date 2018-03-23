@@ -16,8 +16,8 @@
 
     <color name="colorFillPestControl">#2196F3</color>
     <color name="colorFillPestControlFaded">#8FCBF9</color>
-    <color name="colorFillSoilManagement">#795548</color>
-    <color name="colorFillSoilManagementFaded">#C3A59B</color>
+    <color name="colorFillSoilManagement">#FFC107</color>
+    <color name="colorFillSoilManagementFaded">#FFE081</color>
     <color name="colorFillSoilManagementAndPestControl">#4CAF50</color>
     <color name="colorFillSoilManagementAndPestControlFaded">#8ECE91</color>
 </resources>
