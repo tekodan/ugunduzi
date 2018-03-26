@@ -119,6 +119,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
         dataItems.add("users");
         dataItems.add("crops");
         dataItems.add("treatments");
+        dataItems.add("users_farms");
 
         httpConnection http = new httpConnection(this, this);
         if (http.isOnline()) {
@@ -201,7 +202,6 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                 userId = newUser.getUserIdFromAliasPass();
                 if (userId > 0) {
                     // -1 = wrong password, 0 = new user, >0 known user
-                    //TODO: user already exists. Ask: "Download user data? Y/N"
                     user = uAS;
                     prefs.savePreference("user", uAS);
                     prefs.savePreference("userPass", uPS);
@@ -255,6 +255,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                         bConnecting = false;
                         dialog.dismiss();
                         prefs.savePreferenceBoolean("dataDownloaded",true);
+                        dataDownloaded=true;
                         if(!user.equals("")){
                             startNextActivity();
                         } else {
@@ -278,7 +279,6 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                     userId = Integer.parseInt(output);
                     if(userId!=0) {
                         if (userId > 0) {
-                            //TODO: user existed previously, ask: "Download user data Y/N?"
                             prefs.savePreferenceInt("userId", userId);
                         } else if (userId < 0) {
                             userId *= -1;
@@ -316,6 +316,9 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
     }
 
     private void startNextActivity(){
+
+        //TODO: sync downloaded users farms with local users farms
+
         if(prefs.preferenceExists(user+"_farms")){
             String userFarms = prefs.getPreference(user+"_farms");
             String[] userFarmsList = userFarms.split(";");
@@ -339,19 +342,15 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
             } else {
                 //go to single farm
 
-                //following code for testing purposes only
-                //begin delete:
-
                 final Context context = this;
                 Intent i = new Intent(context, farmInterface.class);
                 i.putExtra("user",user);
                 i.putExtra("userId",userId);
                 i.putExtra("userPass",userPass);
-                i.putExtra("newFarm",true);
+                i.putExtra("newFarm",false);
+                i.putExtra("farmName",userFarmsList[0]);
                 startActivity(i);
                 finish();
-
-                //end delete
 
             }
         } else {

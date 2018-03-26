@@ -12,7 +12,7 @@ public class oPlot {
     public float w;
     public float h;
 
-    public int state; // 0 = default; 1 = touched; 2 = moving; 3 = resizing; 4 = editing contents
+    public int state; // 0 = default; 1 = touched; 2 = moving; 3 = resizing; 4 = editing contents; 5 = choosing action
 
     public int iMoveX;
     public int iMoveY;
@@ -26,6 +26,10 @@ public class oPlot {
     public int iContentsY;
     public int iContentsW;
     public int iContentsH;
+    public int iActionsX;
+    public int iActionsY;
+    public int iActionsW;
+    public int iActionsH;
 
     public oCrop crop1;
     public oCrop crop2;
@@ -45,13 +49,15 @@ public class oPlot {
         state=0;
     }
 
-    public void addAreas(int rIMoveW, int rIMoveH, int rIResizeW, int rIResizeH, int rIContentsW, int rIContentsH){
+    public void addAreas(int rIMoveW, int rIMoveH, int rIResizeW, int rIResizeH, int rIContentsW, int rIContentsH, int rIActionsW, int rIActionsH){
         iMoveW = rIMoveW;
         iMoveH = rIMoveH;
         iResizeW = rIResizeW;
         iResizeH = rIResizeH;
         iContentsW = rIContentsW;
         iContentsH = rIContentsH;
+        iActionsW = rIActionsW;
+        iActionsH = rIActionsH;
         calculateAreasXY();
     }
 
@@ -62,5 +68,7 @@ public class oPlot {
         iResizeY = (int)((h+y)-iResizeH-2);
         iContentsX = x+2;
         iContentsY = y+2;
+        iActionsX = (int)((w+x)-iResizeW-2);
+        iActionsY = y+2;
     }
 }

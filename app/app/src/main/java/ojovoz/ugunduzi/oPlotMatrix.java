@@ -51,12 +51,12 @@ public class oPlotMatrix {
         currentPlot = p;
     }
 
-    public boolean addPlot(int iMoveW, int iMoveH, int iResizeW, int iResizeH, int iContentsW, int iContentsH) {
+    public boolean addPlot(int iMoveW, int iMoveH, int iResizeW, int iResizeH, int iContentsW, int iContentsH, int iActionsW, int iActionsH) {
         boolean ret;
         matrixContent cell = findFirstAvailablePosition();
         if (cell.point != null) {
             oPlot p = new oPlot(cell.point.x, cell.point.y, displayWidth / 4, displayHeight / 4);
-            p.addAreas(iMoveW, iMoveH, iResizeW, iResizeH, iContentsW, iContentsH);
+            p.addAreas(iMoveW, iMoveH, iResizeW, iResizeH, iContentsW, iContentsH, iActionsW, iActionsH);
             setCurrentPlot(p);
             p.id=plotIndex;
             plotIndex++;
@@ -88,9 +88,9 @@ public class oPlotMatrix {
         return ret;
     }
 
-    public boolean passEvent(MotionEvent e) {
+    public boolean passEvent(MotionEvent e, int state) {
         if (e.getActionMasked() == MotionEvent.ACTION_DOWN) {
-            currentPlot = getTouchedPlot((int) e.getX(), (int) e.getY());
+            currentPlot = getTouchedPlot((int) e.getX(), (int) e.getY(), state);
             if (currentPlot != null) {
                 if (currentPlot.state == 2 || currentPlot.state == 3) {
                     ghostPlot = new oPlot(currentPlot.x, currentPlot.y, (int) currentPlot.w, (int) currentPlot.h);
@@ -119,7 +119,7 @@ public class oPlotMatrix {
             } else {
                 return false;
             }
-        } else if (e.getActionMasked() == MotionEvent.ACTION_MOVE) {
+        } else if (e.getActionMasked() == MotionEvent.ACTION_MOVE && state==0) {
             if (currentPlot != null && ghostPlot != null) {
                 if (currentPlot.state == 2) {
                     moveGhostPlot((int) e.getX(), (int) e.getY(), (int) ghostPlot.w, (int) ghostPlot.h);
@@ -135,7 +135,7 @@ public class oPlotMatrix {
         }
     }
 
-    public oPlot getTouchedPlot(int x, int y) {
+    public oPlot getTouchedPlot(int x, int y, int state) {
         oPlot ret = null;
         if (currentPlot != null) {
             currentPlot.state = 0;
@@ -144,12 +144,16 @@ public class oPlotMatrix {
         while (iterator.hasNext()) {
             oPlot plot = iterator.next();
             if (isWithin(plot, x, y)) {
-                if (isMoving(plot, x, y)) {
-                    plot.state = 2;
-                } else if (isResizing(plot, x, y)) {
-                    plot.state = 3;
-                } else if (isEditing(plot, x, y)) {
-                    plot.state = 4;
+                if(state==0) {
+                    if (isMoving(plot, x, y)) {
+                        plot.state = 2;
+                    } else if (isResizing(plot, x, y)) {
+                        plot.state = 3;
+                    } else if (isEditing(plot, x, y)) {
+                        plot.state = 4;
+                    } else {
+                        plot.state = 1;
+                    }
                 } else {
                     plot.state = 1;
                 }

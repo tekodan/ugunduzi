@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -54,6 +53,9 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     Bitmap iconContents;
     Bitmap iconContentsFaded;
     Bitmap iconContentsActive;
+    Bitmap iconActions;
+    Bitmap iconActionsFaded;
+    Bitmap iconActionsActive;
 
     String user;
     String userPass;
@@ -62,6 +64,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     boolean bFarmSaved;
     String farmName="";
     int farmSize;
+    int state; //0 = new farm; 1 = actions; 2 = edit farm
 
     oPlotMatrix plotMatrix;
     String sMatrix;
@@ -104,9 +107,15 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
 
         if(newFarm){
             bFarmSaved=false;
+            state=0;
             this.setTitle(R.string.drawNewFarmTitle);
-            int n=1; //TODO: if not single farm, get default farm number
+            int n=1;
             defineFarmNameAcres(n,false);
+        } else {
+            state=1;
+            farmName=getIntent().getExtras().getString("farmName");
+            this.setTitle(farmName);
+            //TODO: get farm plot matrix and rebuild farm
         }
 
         prefs = new preferenceManager(this);
@@ -115,12 +124,15 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         iconMove=BitmapFactory.decodeResource(this.getResources(),R.drawable.move);
         iconResize=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize);
         iconContents=BitmapFactory.decodeResource(this.getResources(),R.drawable.contents);
+        iconActions=BitmapFactory.decodeResource(this.getResources(),R.drawable.actions);
         iconMoveFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.move_faded);
         iconResizeFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize_faded);
         iconContentsFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.contents_faded);
+        iconActionsFaded=BitmapFactory.decodeResource(this.getResources(),R.drawable.actions_faded);
         iconMoveActive=BitmapFactory.decodeResource(this.getResources(),R.drawable.move_active);
         iconResizeActive=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize_active);
         iconContentsActive=BitmapFactory.decodeResource(this.getResources(),R.drawable.contents_active);
+        iconActionsActive=BitmapFactory.decodeResource(this.getResources(),R.drawable.actions_active);
 
 
         plotMatrix = new oPlotMatrix();
@@ -151,7 +163,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
                 plotMatrix.createMatrix(displayWidth,displayHeight);
 
                 if(newFarm){
-                    plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight());
+                    plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight(), iconActions.getWidth(), iconActions.getHeight());
                 }
             }
         });
@@ -160,40 +172,44 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         super.onCreateOptionsMenu(menu);
-        menu.add(0, 0, 0, R.string.opAddPlot);
-        menu.add(1, 1, 1, R.string.opDeletePlot);
-        menu.add(2, 2, 2, R.string.opEditFarmNameSize);
-        menu.add(3, 3, 3, R.string.opSaveFarm);
-        menu.add(4, 4, 4, R.string.opSwitchUser);
+        if(state==0) {
+            menu.add(0, 0, 0, R.string.opAddPlot);
+            menu.add(1, 1, 1, R.string.opDeletePlot);
+            menu.add(2, 2, 2, R.string.opEditFarmNameSize);
+            menu.add(3, 3, 3, R.string.opSaveFarm);
+            menu.add(4, 4, 4, R.string.opSwitchUser);
+        }
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case 0:
-                addPlot();
-                canvasView.invalidate();
-                break;
-            case 1:
-                deleteSelectedPlot();
-                canvasView.invalidate();
-                break;
-            case 2:
-                int n=1; //TODO: if not single farm, get default farm number
-                defineFarmNameAcres(n,true);
-                break;
-            case 3:
-                saveFarm();
-                break;
-            case 4:
-                confirmExit();
+        if(state==0) {
+            switch (item.getItemId()) {
+                case 0:
+                    addPlot();
+                    canvasView.invalidate();
+                    break;
+                case 1:
+                    deleteSelectedPlot();
+                    canvasView.invalidate();
+                    break;
+                case 2:
+                    int n = (newFarm) ? 1 : prefs.getNumberOfValueItems(user + "_farms", ";") + 1;
+                    defineFarmNameAcres(n, true);
+                    break;
+                case 3:
+                    saveFarm();
+                    break;
+                case 4:
+                    confirmExit();
+            }
         }
         return super.onOptionsItemSelected(item);
     }
 
     public void addPlot(){
-        if(!plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight())){
+        if(!plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight(), iconActions.getWidth(), iconActions.getHeight())){
             Toast.makeText(this, R.string.noSpaceForNewPlotMessage, Toast.LENGTH_SHORT).show();
         }
     }
@@ -525,14 +541,17 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
                 if(fName.isEmpty()){
                     Toast.makeText(view.getContext(), R.string.farmNameCannotBeEmptyMessage, Toast.LENGTH_SHORT).show();
                 } else {
-                    //TODO: check if farm name is repeated
-                    EditText fSize = (EditText)dialog.findViewById(R.id.acres);
-                    int farmSize = Integer.parseInt(fSize.getText().toString());
-                    if(farmSize<=0){
-                        Toast.makeText(view.getContext(), R.string.farmSizeMustBeAboveZero, Toast.LENGTH_SHORT).show();
+                    if(prefs.farmExists(user+"_farms",fName,";")){
+                        Toast.makeText(view.getContext(), R.string.farmNameRepeated, Toast.LENGTH_SHORT).show();
                     } else {
-                        updateFarmData(fName,farmSize);
-                        dialog.dismiss();
+                        EditText fSize = (EditText) dialog.findViewById(R.id.acres);
+                        int farmSize = Integer.parseInt(fSize.getText().toString());
+                        if (farmSize <= 0) {
+                            Toast.makeText(view.getContext(), R.string.farmSizeMustBeAboveZero, Toast.LENGTH_SHORT).show();
+                        } else {
+                            updateFarmData(fName, farmSize);
+                            dialog.dismiss();
+                        }
                     }
                 }
             }
@@ -603,6 +622,10 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             prefs.appendIfNewValue(user+"_farms","*"+farmName,";");
             prefs.savePreference(user+"_"+farmName,String.valueOf(farmSize)+";"+sMatrix);
         }
+        if(state==0){
+            state=1;
+            canvasView.invalidate();
+        }
         Toast.makeText(this, R.string.farmSavedMessage, Toast.LENGTH_SHORT).show();
     }
 
@@ -624,9 +647,9 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
 
             if (event.getActionMasked() == MotionEvent.ACTION_DOWN || event.getActionMasked() == MotionEvent.ACTION_MOVE || event.getActionMasked() == MotionEvent.ACTION_UP) {
                 invalidate();
-                boolean b = plotMatrix.passEvent(event);
+                boolean b = plotMatrix.passEvent(event,state);
                 if(plotMatrix.currentPlot!=null) {
-                    if (plotMatrix.currentPlot.state == 4) {
+                    if (plotMatrix.currentPlot.state == 4 && state==0) {
                         definePlotContents();
                     }
                 }
@@ -642,30 +665,36 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             super.onDraw(canvas);
 
             int fillColor;
-            int borderColor=ContextCompat.getColor(context, R.color.colorDraw);
+            int borderColor;
 
             Bitmap iMove;
             Bitmap iResize;
             Bitmap iContents;
+            Bitmap iActions;
 
             Iterator<oPlot> iterator = plotMatrix.getPlots().iterator();
             while (iterator.hasNext()) {
                 oPlot plot = iterator.next();
                 fillColor=getFillColor(plot,plot==plotMatrix.currentPlot);
                 borderColor= (plot==plotMatrix.currentPlot) ? ContextCompat.getColor(context, R.color.colorDraw) : ContextCompat.getColor(context, R.color.colorDrawFaded);
-                iMove = (plot==plotMatrix.currentPlot) ? (plotMatrix.currentPlot.state==2) ? iconMoveActive : iconMove  : iconMoveFaded;
-                iResize = (plot==plotMatrix.currentPlot) ? (plotMatrix.currentPlot.state==3) ? iconResizeActive : iconResize : iconResizeFaded;
-                iContents = (plot==plotMatrix.currentPlot) ? (plotMatrix.currentPlot.state==4) ? iconContentsActive : iconContents : iconContentsFaded;
-                drawPlot(canvas, plot, borderColor, fillColor, iMove, iResize, iContents);
+                if(state==0) {
+                    iMove = (plot == plotMatrix.currentPlot) ? (plotMatrix.currentPlot.state == 2) ? iconMoveActive : iconMove : iconMoveFaded;
+                    iResize = (plot == plotMatrix.currentPlot) ? (plotMatrix.currentPlot.state == 3) ? iconResizeActive : iconResize : iconResizeFaded;
+                    iContents = (plot == plotMatrix.currentPlot) ? (plotMatrix.currentPlot.state == 4) ? iconContentsActive : iconContents : iconContentsFaded;
+                    drawPlot(canvas, plot, borderColor, fillColor, iMove, iResize, iContents);
+                } else if(state==1){
+                    iActions = (plot == plotMatrix.currentPlot) ? (plotMatrix.currentPlot.state == 5) ? iconActionsActive : iconActions : iconActionsFaded;
+                    drawPlot(canvas, plot, borderColor, fillColor, iActions);
+                }
             }
 
-            if(plotMatrix.ghostPlot !=null){
+            if(plotMatrix.ghostPlot !=null && state==0){
                 drawGhostRectangle(canvas, plotMatrix.ghostPlot, ContextCompat.getColor(context, R.color.colorDrawGhostRectangle));
             }
         }
 
         public int getFillColor(oPlot p, boolean strong){
-            int ret=ContextCompat.getColor(context, R.color.colorFillDefault);
+            int ret;
             if(!(p.treatment1==null) && !(p.treatment2==null)){
                 if(p.treatment1.category!=p.treatment2.category){
                     ret = (strong) ? ContextCompat.getColor(context,R.color.colorFillSoilManagementAndPestControl) : ContextCompat.getColor(context,R.color.colorFillSoilManagementAndPestControlFaded);
@@ -704,6 +733,17 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             canvas.drawBitmap(iMove,p.iMoveX,p.iMoveY,paint);
             canvas.drawBitmap(iResize,p.iResizeX,p.iResizeY,paint);
             canvas.drawBitmap(iContents,p.iContentsX,p.iContentsY,paint);
+        }
+
+        private void drawPlot(Canvas canvas, oPlot p, int border, int fill, Bitmap iActions){
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(fill);
+            canvas.drawRect(p.x,p.y,p.x+p.w,p.y+p.h,paint);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(border);
+            canvas.drawRect(p.x,p.y,p.x+p.w,p.y+p.h,paint);
+            canvas.drawBitmap(iActions,p.iActionsX,p.iActionsY,paint);
+            //TODO: write plot label
         }
 
         private void drawGhostRectangle(Canvas canvas, oPlot gR, int border){

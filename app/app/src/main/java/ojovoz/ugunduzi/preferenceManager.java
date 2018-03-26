@@ -91,4 +91,21 @@ public class preferenceManager {
             savePreference(keyName, value);
         }
     }
+
+    public int getNumberOfValueItems(String keyName, String separator){
+        int ret=0;
+        String allValues=getPreference(keyName);
+        if(!allValues.isEmpty()) {
+            ret = allValues.split(separator).length;
+        }
+        return ret;
+    }
+
+    public boolean farmExists(String keyName, String value, String separator){
+        boolean ret=false;
+        if(valueExistsInList(keyName,value,separator) || valueExistsInList(keyName,"*"+value,separator)){
+            ret=true;
+        }
+        return ret;
+    }
 }

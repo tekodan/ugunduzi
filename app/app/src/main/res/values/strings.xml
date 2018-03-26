@@ -40,4 +40,5 @@
     <string name="enterTreatment2Label">Treatment two</string>
     <string name="createNewFarmLabel">Creating new farm</string>
     <string name="farmSavedMessage">Farm saved successfully</string>
+    <string name="farmNameRepeated">Farm name is repeated</string>
 </resources>
