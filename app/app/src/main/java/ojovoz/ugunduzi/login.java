@@ -318,7 +318,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
     private void startNextActivity(){
         if(prefs.preferenceExists(user+"_farms")){
             String userFarms = prefs.getPreference(user+"_farms");
-            String[] userFarmsList = userFarms.split(",");
+            String[] userFarmsList = userFarms.split(";");
             if(userFarmsList.length>1){
                 //farm chooser
 

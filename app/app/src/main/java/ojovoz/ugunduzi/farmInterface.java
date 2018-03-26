@@ -64,6 +64,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     int farmSize;
 
     oPlotMatrix plotMatrix;
+    String sMatrix;
 
     ArrayList<oCrop> cropList;
     public CharSequence cropNamesArray[];
@@ -81,6 +82,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
 
     boolean bConnecting=false;
     String server;
+    ProgressDialog createFarmDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,7 +164,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         menu.add(1, 1, 1, R.string.opDeletePlot);
         menu.add(2, 2, 2, R.string.opEditFarmNameSize);
         menu.add(3, 3, 3, R.string.opSaveFarm);
-        menu.add(3, 3, 3, R.string.opSwitchUser);
+        menu.add(4, 4, 4, R.string.opSwitchUser);
         return true;
     }
 
@@ -540,38 +542,43 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     }
 
     public void updateFarmData(String fName, int fSize){
-        prefs.appendIfNewValue(user+"_farms",fName,",");
-        //TODO: update log: create farm
-
+        fName = fName.replaceAll(";", " ");
+        fName = fName.replaceAll("\\*", "");
         this.setTitle(getString(R.string.drawNewFarmTitle)+ ": " + fName);
         farmName = fName;
         farmSize = fSize;
     }
 
     public void saveFarm(){
-        ProgressDialog dialog;
-        String fName = farmName.replaceAll(" ", "_");
-        fName = fName.replaceAll(";", " ");
 
-        String sMatrix = plotMatrix.toString();
+        sMatrix = plotMatrix.toString();
+
+        farmName = farmName.replaceAll("'", "");
+        String fName = farmName.replaceAll(" ", "_");
+
         String saveString = user + ";" + userPass + ";" + fName + ";" + String.valueOf(farmSize) + ";" + sMatrix;
         httpConnection http = new httpConnection(this, this);
         if (http.isOnline()) {
             CharSequence dialogTitle = getString(R.string.createNewFarmLabel);
 
-            dialog = new ProgressDialog(this);
-            dialog.setCancelable(true);
-            dialog.setCanceledOnTouchOutside(false);
-            dialog.setMessage(dialogTitle);
-            dialog.setIndeterminate(true);
-            dialog.show();
-            dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            createFarmDialog = new ProgressDialog(this);
+            createFarmDialog.setCancelable(true);
+            createFarmDialog.setCanceledOnTouchOutside(false);
+            createFarmDialog.setMessage(dialogTitle);
+            createFarmDialog.setIndeterminate(true);
+            createFarmDialog.show();
+            createFarmDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                 @Override
                 public void onCancel(DialogInterface d) {
                     bConnecting = false;
+                    createFarmDialog.dismiss();
                 }
             });
             doCreateNewFarm(saveString);
+        } else {
+            prefs.appendIfNewValue(user+"_farms","*"+fName,";");
+            prefs.savePreference(user+"_"+fName,String.valueOf(farmSize)+";"+sMatrix);
+            Toast.makeText(this, R.string.farmSavedMessage, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -587,7 +594,16 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
 
     @Override
     public void processFinish(String output) {
-
+        bConnecting=false;
+        createFarmDialog.dismiss();
+        if(!output.equals("ko")){
+            prefs.appendIfNewValue(user+"_farms",farmName,";");
+            prefs.savePreference(user+"_"+farmName,String.valueOf(farmSize)+";"+sMatrix);
+        } else {
+            prefs.appendIfNewValue(user+"_farms","*"+farmName,";");
+            prefs.savePreference(user+"_"+farmName,String.valueOf(farmSize)+";"+sMatrix);
+        }
+        Toast.makeText(this, R.string.farmSavedMessage, Toast.LENGTH_SHORT).show();
     }
 
     class SketchSheetView extends View {

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net
 --
 -- Servidor: 192.168.86.55
--- Tiempo de generación: 23-03-2018 a las 18:01:34
+-- Tiempo de generación: 26-03-2018 a las 18:37:10
 -- Versión del servidor: 5.5.57-0+deb7u1-log
 -- Versión de PHP: 5.3.29-1~dotdeb.0
 
@@ -19,19 +19,6 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `ugunduzi`
 --
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `configuration`
---
-
-CREATE TABLE IF NOT EXISTS `configuration` (
-  `configuration_id` int(10) unsigned NOT NULL,
-  `farm_id` int(10) unsigned NOT NULL,
-  `valid_from` date NOT NULL,
-  `valid_until` date NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -58,18 +45,6 @@ INSERT INTO `crop` (`crop_id`, `crop_name`, `crop_variety`) VALUES
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `crop_x_plot`
---
-
-CREATE TABLE IF NOT EXISTS `crop_x_plot` (
-  `crop_x_plot_id` int(10) unsigned NOT NULL,
-  `crop_id` int(10) unsigned NOT NULL,
-  `plot_id` int(10) unsigned NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `data_item`
 --
 
@@ -89,8 +64,10 @@ CREATE TABLE IF NOT EXISTS `farm` (
   `farm_id` int(10) unsigned NOT NULL,
   `user_id` int(10) unsigned NOT NULL,
   `farm_name` varchar(30) NOT NULL,
-  `farm_size_acres` int(10) unsigned NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  `farm_size_acres` int(10) unsigned NOT NULL,
+  `farm_date_created` date NOT NULL,
+  `parent_farm_id` int(10) unsigned NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -118,13 +95,16 @@ CREATE TABLE IF NOT EXISTS `log` (
 CREATE TABLE IF NOT EXISTS `plot` (
   `plot_id` int(10) unsigned NOT NULL,
   `internal_plot_id` int(10) unsigned NOT NULL,
-  `configuration_id` int(10) unsigned NOT NULL,
+  `farm_id` int(10) unsigned NOT NULL,
   `plot_x` int(10) unsigned NOT NULL,
   `plot_y` int(10) unsigned NOT NULL,
   `plot_w` int(10) unsigned NOT NULL,
   `plot_h` int(10) unsigned NOT NULL,
-  `plot_size` int(10) unsigned NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  `plot_crop1` int(10) unsigned NOT NULL,
+  `plot_crop2` int(10) unsigned NOT NULL,
+  `plot_treatment1` int(10) unsigned NOT NULL,
+  `plot_treatment2` int(10) unsigned NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -145,18 +125,6 @@ CREATE TABLE IF NOT EXISTS `treatment` (
 INSERT INTO `treatment` (`treatment_id`, `treatment_name`, `treatment_category`) VALUES
 (1, 'Pest control', 0),
 (2, 'Compost', 1);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `treatment_x_plot`
---
-
-CREATE TABLE IF NOT EXISTS `treatment_x_plot` (
-  `treatment_x_plot_id` int(10) unsigned NOT NULL,
-  `treatment_id` int(10) unsigned NOT NULL,
-  `plot_id` int(10) unsigned NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -184,7 +152,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `user_group` varchar(30) NOT NULL,
   `user_association` varchar(30) NOT NULL,
   `user_location` varchar(30) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 --
 -- Volcado de datos para la tabla `user`
@@ -199,22 +167,10 @@ INSERT INTO `user` (`user_id`, `user_name`, `user_alias`, `user_password`, `user
 --
 
 --
--- Indices de la tabla `configuration`
---
-ALTER TABLE `configuration`
-  ADD PRIMARY KEY (`configuration_id`);
-
---
 -- Indices de la tabla `crop`
 --
 ALTER TABLE `crop`
   ADD PRIMARY KEY (`crop_id`);
-
---
--- Indices de la tabla `crop_x_plot`
---
-ALTER TABLE `crop_x_plot`
-  ADD PRIMARY KEY (`crop_x_plot_id`);
 
 --
 -- Indices de la tabla `data_item`
@@ -247,12 +203,6 @@ ALTER TABLE `treatment`
   ADD PRIMARY KEY (`treatment_id`);
 
 --
--- Indices de la tabla `treatment_x_plot`
---
-ALTER TABLE `treatment_x_plot`
-  ADD PRIMARY KEY (`treatment_x_plot_id`);
-
---
 -- Indices de la tabla `units`
 --
 ALTER TABLE `units`
@@ -269,20 +219,10 @@ ALTER TABLE `user`
 --
 
 --
--- AUTO_INCREMENT de la tabla `configuration`
---
-ALTER TABLE `configuration`
-  MODIFY `configuration_id` int(10) unsigned NOT NULL AUTO_INCREMENT;
---
 -- AUTO_INCREMENT de la tabla `crop`
 --
 ALTER TABLE `crop`
   MODIFY `crop_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=5;
---
--- AUTO_INCREMENT de la tabla `crop_x_plot`
---
-ALTER TABLE `crop_x_plot`
-  MODIFY `crop_x_plot_id` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT de la tabla `data_item`
 --
@@ -292,7 +232,7 @@ ALTER TABLE `data_item`
 -- AUTO_INCREMENT de la tabla `farm`
 --
 ALTER TABLE `farm`
-  MODIFY `farm_id` int(10) unsigned NOT NULL AUTO_INCREMENT;
+  MODIFY `farm_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=5;
 --
 -- AUTO_INCREMENT de la tabla `log`
 --
@@ -302,17 +242,12 @@ ALTER TABLE `log`
 -- AUTO_INCREMENT de la tabla `plot`
 --
 ALTER TABLE `plot`
-  MODIFY `plot_id` int(10) unsigned NOT NULL AUTO_INCREMENT;
+  MODIFY `plot_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=22;
 --
 -- AUTO_INCREMENT de la tabla `treatment`
 --
 ALTER TABLE `treatment`
   MODIFY `treatment_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
---
--- AUTO_INCREMENT de la tabla `treatment_x_plot`
---
-ALTER TABLE `treatment_x_plot`
-  MODIFY `treatment_x_plot_id` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT de la tabla `units`
 --
@@ -322,7 +257,7 @@ ALTER TABLE `units`
 -- AUTO_INCREMENT de la tabla `user`
 --
 ALTER TABLE `user`
-  MODIFY `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
+  MODIFY `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=5;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

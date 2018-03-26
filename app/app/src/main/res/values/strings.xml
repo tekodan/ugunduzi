@@ -39,4 +39,5 @@
     <string name="enterTreatment1Label">Treatment one</string>
     <string name="enterTreatment2Label">Treatment two</string>
     <string name="createNewFarmLabel">Creating new farm</string>
+    <string name="farmSavedMessage">Farm saved successfully</string>
 </resources>
