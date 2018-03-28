@@ -6,7 +6,7 @@ $dbh = initDB();
 if(isset($_GET['farm'])){
 	$farm_string=$_GET['farm'];
 	$farm_parts=explode(";",$farm_string);
-	if(sizeof($farm_parts)>=13){
+	if(sizeof($farm_parts)>=14){
 		$alias=$farm_parts[0];
 		$pass=$farm_parts[1];
 		$user_id=getUserIDFromAlias($dbh,$alias);
@@ -18,18 +18,19 @@ if(isset($_GET['farm'])){
 		}
 		$farm_name=str_replace("_"," ",$farm_parts[2]); 
 		$farm_size=$farm_parts[3];
+		$farm_date_created=$farm_parts[4];
 		$farm_id=getFarmIDFromNameUser($dbh,$farm_name,$user_id); // get farm id
 		if($farm_id==-1){
-			$farm_id=createNewFarm($dbh,$farm_name,$farm_size,$user_id,-1);
+			$farm_id=createNewFarm($dbh,$farm_name,$farm_size,$farm_date_created,$user_id,-1);
 		} else {
 			if(farmHasData($dbh,$farm_id)){
-				$farm_id=createNewFarm($dbh,$farm_name,$farm_size,$user_id,$farm_id); //if farm exists AND has data, create a new farm with parent farm = previous farm (child farms invalidate parent farms)
+				$farm_id=createNewFarm($dbh,$farm_name,$farm_size,$farm_date_created,$user_id,$farm_id); //if farm exists AND has data, create a new farm with parent farm = previous farm (child farms invalidate parent farms)
 			} else {
 				deleteFarmPlots($dbh,$farm_id); //if farm exists but has no data, update plots
 			}
 		}
 		$output_part_2=$farm_id;
-		for($i=4;$i<sizeof($farm_parts);$i+=9){
+		for($i=5;$i<sizeof($farm_parts);$i+=9){
 			$plot_id=$farm_parts[$i];
 			$plot_x=$farm_parts[$i+1];
 			$plot_y=$farm_parts[$i+2];

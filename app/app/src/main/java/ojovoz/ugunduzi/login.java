@@ -35,8 +35,8 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
     private preferenceManager prefs;
     private boolean dataDownloaded = false;
 
-    private String uAS="";
-    private String uPS="";
+    private String uAS = "";
+    private String uPS = "";
 
     private ArrayList<String> dataItems;
     private int index;
@@ -62,7 +62,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
 
         user = prefs.getPreference("user");
         if (!user.equals("")) {
-            if(dataDownloaded){
+            if (dataDownloaded) {
                 userId = prefs.getPreferenceInt("userId");
                 userPass = prefs.getPreference("userPass");
                 startNextActivity();
@@ -208,7 +208,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                     prefs.savePreferenceInt("userId", userId);
                     startNextActivity();
                 } else if (userId == 0) {
-                    if(dataDownloaded) {
+                    if (dataDownloaded) {
                         connectionTask = 1;
                         createNewUser(uAS, uPS);
                     } else {
@@ -223,61 +223,62 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
 
     @Override
     public void processFinish(String output) {
-        if (TextUtils.isEmpty(output)) {
-            bConnecting = false;
-            dialog.dismiss();
-            Toast.makeText(this, R.string.incorrectServerURLMessage, Toast.LENGTH_SHORT).show();
-            defineServer(server);
-        } else {
-            switch (connectionTask) {
-                case 0:
-                    bConnecting = false;
-                    String[] nextLine;
-                    CSVReader reader = new CSVReader(new StringReader(output), ',', '"');
-                    deleteCatalog(dataItems.get(index));
-                    File file = new File(this.getFilesDir(), dataItems.get(index));
-                    try {
-                        FileWriter w = new FileWriter(file);
-                        CSVWriter writer = new CSVWriter(w, ',', '"');
-                        while ((nextLine = reader.readNext()) != null) {
-                            writer.writeNext(nextLine);
-                        }
-                        writer.close();
-                        reader.close();
-                    } catch (IOException e) {
 
+        switch (connectionTask) {
+            case 0:
+                bConnecting = false;
+                String[] nextLine;
+                CSVReader reader = new CSVReader(new StringReader(output), ',', '"');
+                deleteCatalog(dataItems.get(index));
+                File file = new File(this.getFilesDir(), dataItems.get(index));
+                try {
+                    FileWriter w = new FileWriter(file);
+                    CSVWriter writer = new CSVWriter(w, ',', '"');
+                    while ((nextLine = reader.readNext()) != null) {
+                        writer.writeNext(nextLine);
                     }
-                    index++;
-                    if (index < dataItems.size()) {
-                        progressHandler.sendMessage(progressHandler.obtainMessage());
-                        doDownload();
+                    writer.close();
+                    reader.close();
+                } catch (IOException e) {
+
+                }
+                index++;
+                if (index < dataItems.size()) {
+                    progressHandler.sendMessage(progressHandler.obtainMessage());
+                    doDownload();
+                } else {
+                    bConnecting = false;
+                    dialog.dismiss();
+                    prefs.savePreferenceBoolean("dataDownloaded", true);
+                    dataDownloaded = true;
+                    if (!user.equals("")) {
+                        startNextActivity();
                     } else {
-                        bConnecting = false;
-                        dialog.dismiss();
-                        prefs.savePreferenceBoolean("dataDownloaded",true);
-                        dataDownloaded=true;
-                        if(!user.equals("")){
-                            startNextActivity();
+                        if (uAS == null || uPS == null) {
+                            updateAutocomplete();
                         } else {
-                            if(uAS==null || uPS==null){
-                                updateAutocomplete();
-                            } else {
-                                if (!uAS.isEmpty() && !uPS.isEmpty()) {
-                                    if(!uAS.equals("reset") && !uAS.equals("admin")) {
-                                        connectionTask = 1;
-                                        createNewUser(uAS, uPS);
-                                    }
-                                } else {
-                                    updateAutocomplete();
+                            if (!uAS.isEmpty() && !uPS.isEmpty()) {
+                                if (!uAS.equals("reset") && !uAS.equals("admin")) {
+                                    connectionTask = 1;
+                                    createNewUser(uAS, uPS);
                                 }
+                            } else {
+                                updateAutocomplete();
                             }
                         }
                     }
-                    break;
-                case 1:
+                }
+                break;
+            case 1:
+                if (TextUtils.isEmpty(output)) {
+                    bConnecting = false;
+                    dialog.dismiss();
+                    Toast.makeText(this, R.string.incorrectServerURLMessage, Toast.LENGTH_SHORT).show();
+                    defineServer(server);
+                } else {
                     dialog.dismiss();
                     userId = Integer.parseInt(output);
-                    if(userId!=0) {
+                    if (userId != 0) {
                         if (userId > 0) {
                             prefs.savePreferenceInt("userId", userId);
                         } else if (userId < 0) {
@@ -286,7 +287,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                         }
                         prefs.savePreference("user", uAS);
                         prefs.savePreference("userPass", uPS);
-                        user=uAS;
+                        user = uAS;
                         oUser newUser = new oUser(this);
                         newUser.addNewUser(userId, uAS, uPS);
                         startNextActivity();
@@ -294,8 +295,9 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                         Toast.makeText(this, R.string.wrongPasswordLabel, Toast.LENGTH_SHORT).show();
                         updateAutocomplete();
                     }
-            }
+                }
         }
+
     }
 
     Handler progressHandler = new Handler() {
@@ -315,40 +317,35 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
         this.deleteFile(filename);
     }
 
-    private void startNextActivity(){
+    private void startNextActivity() {
 
         //TODO: sync downloaded users farms with local users farms
 
-        if(prefs.preferenceExists(user+"_farms")){
-            String userFarms = prefs.getPreference(user+"_farms");
+        if (prefs.preferenceExists(user + "_farms")) {
+            String userFarms = prefs.getPreference(user + "_farms");
             String[] userFarmsList = userFarms.split(";");
-            if(userFarmsList.length>1){
+            if (userFarmsList.length > 1) {
                 //farm chooser
 
-                //following code for testing purposes only
-                //begin delete:
-
                 final Context context = this;
-                Intent i = new Intent(context, farmInterface.class);
-                i.putExtra("user",user);
-                i.putExtra("userId",userId);
-                i.putExtra("userPass",userPass);
-                i.putExtra("newFarm",true);
+                Intent i = new Intent(context, farmChooser.class);
+                i.putExtra("user", user);
+                i.putExtra("userId", userId);
+                i.putExtra("userPass", userPass);
                 startActivity(i);
                 finish();
-
-                //end delete
 
             } else {
                 //go to single farm
 
                 final Context context = this;
                 Intent i = new Intent(context, farmInterface.class);
-                i.putExtra("user",user);
-                i.putExtra("userId",userId);
-                i.putExtra("userPass",userPass);
-                i.putExtra("newFarm",false);
-                i.putExtra("farmName",userFarmsList[0]);
+                i.putExtra("user", user);
+                i.putExtra("userId", userId);
+                i.putExtra("userPass", userPass);
+                i.putExtra("newFarm", false);
+                i.putExtra("firstFarm",false);
+                i.putExtra("farmName", userFarmsList[0]);
                 startActivity(i);
                 finish();
 
@@ -356,10 +353,11 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
         } else {
             final Context context = this;
             Intent i = new Intent(context, farmInterface.class);
-            i.putExtra("user",user);
-            i.putExtra("userId",userId);
-            i.putExtra("userPass",userPass);
-            i.putExtra("newFarm",true);
+            i.putExtra("user", user);
+            i.putExtra("userId", userId);
+            i.putExtra("userPass", userPass);
+            i.putExtra("newFarm", true);
+            i.putExtra("firstFarm",true);
             startActivity(i);
             finish();
         }

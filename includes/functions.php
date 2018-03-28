@@ -36,9 +36,8 @@ function getFarmIDFromNameUser($dbh,$farm_name,$user_id){
 	return $ret;
 }
 
-function createNewFarm($dbh,$farm_name,$farm_size,$user_id,$parent_id){
-	$current_date=date('Y-m-d');
-	$query="INSERT INTO farm (user_id, farm_name, farm_size_acres, farm_date_created, parent_farm_id) VALUES($user_id, '$farm_name', $farm_size, '$current_date', $parent_id)";
+function createNewFarm($dbh,$farm_name,$farm_size,$farm_date_created,$user_id,$parent_id){
+	$query="INSERT INTO farm (user_id, farm_name, farm_size_acres, farm_date_created, parent_farm_id) VALUES($user_id, '$farm_name', $farm_size, '$farm_date_created', $parent_id)";
 	$result = mysqli_query($dbh,$query);
 	$id = mysqli_insert_id($dbh);
 	return $id;

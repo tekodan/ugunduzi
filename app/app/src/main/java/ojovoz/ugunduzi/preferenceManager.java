@@ -44,6 +44,33 @@ public class preferenceManager {
         return value;
     }
 
+    public ArrayList<String> getPreferenceAsArrayList(String keyName, String separator, String prefixExcluded) {
+        ArrayList<String> ret = new ArrayList<>();
+        String list = getPreference(keyName);
+        String valuesArray[] = list.split(separator);
+        for(int i=0;i<valuesArray.length;i++) {
+            if(!prefixExcluded.isEmpty()){
+                if(prefixExcluded.charAt(0)!=valuesArray[i].charAt(0)){
+                    ret.add(valuesArray[i]);
+                }
+            } else {
+                ret.add(valuesArray[i]);
+            }
+        }
+        return ret;
+    }
+
+    public String getFarmDate(String keyName, String separator){
+        String ret="";
+        ArrayList<String> farmList = getPreferenceAsArrayList(keyName,separator,"");
+        if(farmList!=null){
+            if(farmList.size()>1){
+                ret=farmList.get(1);
+            }
+        }
+        return ret;
+    }
+
     public void savePreference(String keyName, String keyValue) {
         SharedPreferences ugunduziPrefs = context.getSharedPreferences("ugunduziPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor prefEditor = ugunduziPrefs.edit();

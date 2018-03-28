@@ -41,4 +41,9 @@
     <string name="createNewFarmLabel">Creating new farm</string>
     <string name="farmSavedMessage">Farm saved successfully</string>
     <string name="farmNameRepeated">Farm name is repeated</string>
+    <string name="chooseFarmTitle">Choose a farm</string>
+    <string name="farmChooserActivityTitle">Ugunduzi</string>
+    <string name="opDeleteSelectedFarms">Delete selected farms</string>
+    <string name="opCreateNewFarm">Create new farm</string>
+    <string name="opCancelNewFarm">Cancel new farm</string>
 </resources>

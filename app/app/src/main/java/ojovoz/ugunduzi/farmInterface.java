@@ -15,6 +15,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,8 +29,11 @@ import android.widget.RelativeLayout;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.TimeZone;
 
 /**
  * Created by Eugenio on 13/03/2018.
@@ -61,6 +65,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     String userPass;
     int userId;
     boolean newFarm;
+    boolean firstFarm;
     boolean bFarmSaved;
     String farmName="";
     int farmSize;
@@ -96,6 +101,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         userPass=getIntent().getExtras().getString("userPass");
         userId=getIntent().getExtras().getInt("userId");
         newFarm = getIntent().getExtras().getBoolean("newFarm");
+        firstFarm = getIntent().getExtras().getBoolean("firstFarm");
 
         oCrop seed = new oCrop(this);
         cropList = seed.getCrops();
@@ -170,16 +176,24 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     }
 
     @Override
-    public boolean onCreateOptionsMenu(android.view.Menu menu) {
-        super.onCreateOptionsMenu(menu);
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        menu.clear();
+
         if(state==0) {
             menu.add(0, 0, 0, R.string.opAddPlot);
             menu.add(1, 1, 1, R.string.opDeletePlot);
             menu.add(2, 2, 2, R.string.opEditFarmNameSize);
             menu.add(3, 3, 3, R.string.opSaveFarm);
-            menu.add(4, 4, 4, R.string.opSwitchUser);
+            if(!firstFarm) {
+                menu.add(4, 4, 4, R.string.opCancelNewFarm);
+            }
+            menu.add(5, 5, 5, R.string.opSwitchUser);
+        } else if(state==1){
+            menu.add(0, 0, 0, R.string.opCreateNewFarm);
         }
-        return true;
+
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -202,10 +216,29 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
                     saveFarm();
                     break;
                 case 4:
+                    //TODO: cancel creation of new farm
+                    break;
+                case 5:
                     confirmExit();
+            }
+        } else if (state==1){
+            switch(item.getItemId()){
+                case 0:
+                    createNewFarm();
+                    break;
             }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void createNewFarm(){
+        plotMatrix=new oPlotMatrix();
+        plotMatrix.createMatrix(displayWidth,displayHeight);
+        plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight(), iconActions.getWidth(), iconActions.getHeight());
+        state=0;
+        bFarmSaved=false;
+        canvasView.invalidate();
+        //TODO: get default farmname, show define farm acres dialog
     }
 
     public void addPlot(){
@@ -575,7 +608,12 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         farmName = farmName.replaceAll("'", "");
         String fName = farmName.replaceAll(" ", "_");
 
-        String saveString = user + ";" + userPass + ";" + fName + ";" + String.valueOf(farmSize) + ";" + sMatrix;
+        Date farmDate = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        sdf.setTimeZone(TimeZone.getDefault());
+        String farmDateString = sdf.format(farmDate);
+
+        String saveString = user + ";" + userPass + ";" + fName + ";" + String.valueOf(farmSize) + ";" + farmDateString + ";" + sMatrix;
         httpConnection http = new httpConnection(this, this);
         if (http.isOnline()) {
             CharSequence dialogTitle = getString(R.string.createNewFarmLabel);
@@ -596,8 +634,11 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             doCreateNewFarm(saveString);
         } else {
             prefs.appendIfNewValue(user+"_farms","*"+fName,";");
-            prefs.savePreference(user+"_"+fName,String.valueOf(farmSize)+";"+sMatrix);
+            prefs.savePreference(user+"_"+fName,String.valueOf(farmSize)+";"+farmDateString+";"+sMatrix);
             Toast.makeText(this, R.string.farmSavedMessage, Toast.LENGTH_SHORT).show();
+            state=1;
+            canvasView.invalidate();
+            firstFarm=false;
         }
     }
 
@@ -624,6 +665,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         }
         if(state==0){
             state=1;
+            firstFarm=false;
             canvasView.invalidate();
         }
         Toast.makeText(this, R.string.farmSavedMessage, Toast.LENGTH_SHORT).show();
