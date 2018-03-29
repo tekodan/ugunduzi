@@ -60,4 +60,22 @@ public class oTreatment {
         }
         return ret;
     }
+
+    public oTreatment getTreatmentFromId(int id){
+        oTreatment ret = new oTreatment();
+        if(id==0){
+            ret=null;
+        } else {
+            ArrayList<oTreatment> treatmentList = getTreatments();
+            Iterator<oTreatment> iterator = treatmentList.iterator();
+            while (iterator.hasNext()) {
+                oTreatment t = iterator.next();
+                if (t.id == id) {
+                    ret = t;
+                    break;
+                }
+            }
+        }
+        return ret;
+    }
 }

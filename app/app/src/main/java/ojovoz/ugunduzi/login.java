@@ -193,7 +193,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
         EditText uP = (EditText) findViewById(R.id.userPassword);
         uPS = uP.getText().toString();
         if (!uAS.equals("") && !uPS.equals("")) {
-            if (uAS.equals("admin") && uPS.equals("admin")) {
+            if (uAS.equals("admin") && uPS.equals("admin")) { //TODO: command 'sync': downloads farms, updates local preferences & files
                 defineServer(server);
             } else if (uAS.equals("reset") && uPS.equals("reset")) {
                 downloadData();
@@ -203,6 +203,7 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                 if (userId > 0) {
                     // -1 = wrong password, 0 = new user, >0 known user
                     user = uAS;
+                    userPass = uPS;
                     prefs.savePreference("user", uAS);
                     prefs.savePreference("userPass", uPS);
                     prefs.savePreferenceInt("userId", userId);
@@ -318,8 +319,6 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
     }
 
     private void startNextActivity() {
-
-        //TODO: sync downloaded users farms with local users farms
 
         if (prefs.preferenceExists(user + "_farms")) {
             String userFarms = prefs.getPreference(user + "_farms");

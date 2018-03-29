@@ -59,4 +59,22 @@ public class oCrop {
         }
         return ret;
     }
+
+    public oCrop getCropFromId(int id){
+        oCrop ret = new oCrop();
+        if(id==0){
+            ret=null;
+        } else {
+            ArrayList<oCrop> cropList = getCrops();
+            Iterator<oCrop> iterator = cropList.iterator();
+            while (iterator.hasNext()) {
+                oCrop c = iterator.next();
+                if (c.id == id) {
+                    ret = c;
+                    break;
+                }
+            }
+        }
+        return ret;
+    }
 }

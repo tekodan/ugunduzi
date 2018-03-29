@@ -47,6 +47,28 @@ public class oPlotMatrix {
         }
     }
 
+    public void fromString(Context c,String matrixString, String separator, int iMoveW, int iMoveH, int iResizeW, int iResizeH, int iContentsW, int iContentsH, int iActionsW, int iActionsH){
+        String matrixItems[] = matrixString.split(separator);
+        oPlot plot;
+        oCrop crop = new oCrop(c);
+        oTreatment treatment = new oTreatment(c);
+        for(int i=2;i<matrixItems.length;i+=9){
+            plot=new oPlot();
+            plot.id=Integer.parseInt(matrixItems[i]);
+            plot.x=Integer.parseInt(matrixItems[i+1])*(int)(displayWidth/4);
+            plot.y=Integer.parseInt(matrixItems[i+2])*(int)(displayHeight/4);
+            plot.w=Integer.parseInt(matrixItems[i+3])*(int)(displayWidth/4);
+            plot.h=Integer.parseInt(matrixItems[i+4])*(int)(displayHeight/4);
+            plot.crop1=crop.getCropFromId(Integer.parseInt(matrixItems[i+5]));
+            plot.crop2=crop.getCropFromId(Integer.parseInt(matrixItems[i+6]));
+            plot.treatment1=treatment.getTreatmentFromId(Integer.parseInt(matrixItems[i+7]));
+            plot.treatment2=treatment.getTreatmentFromId(Integer.parseInt(matrixItems[i+8]));
+            plot.addAreas(iMoveW, iMoveH, iResizeW, iResizeH, iContentsW, iContentsH, iActionsW, iActionsH);
+            plots.add(plot);
+            addPlotToMatrix(plot,plot.x,plot.y,(int)(plot.w/(displayWidth/4)),(int)(plot.h/(displayHeight/4)));
+        }
+    }
+
     public void setCurrentPlot(oPlot p) {
         currentPlot = p;
     }

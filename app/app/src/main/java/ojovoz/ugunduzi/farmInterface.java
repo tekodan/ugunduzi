@@ -8,12 +8,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextPaint;
 import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +45,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
 
     RelativeLayout relativeLayout;
     Paint paint;
+    TextPaint textPaint;
     View canvasView;
     Bitmap bitmap;
     Canvas canvas;
@@ -68,8 +72,12 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     boolean firstFarm;
     boolean bFarmSaved;
     String farmName="";
+    String prevFarmName="";
     int farmSize;
+    String farmDateString;
+
     int state; //0 = new farm; 1 = actions; 2 = edit farm
+
 
     oPlotMatrix plotMatrix;
     String sMatrix;
@@ -96,6 +104,8 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_farm_interface);
+
+        final Context ctxt=this;
 
         user=getIntent().getExtras().getString("user");
         userPass=getIntent().getExtras().getString("userPass");
@@ -166,10 +176,18 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
                 paint.setStrokeCap(Paint.Cap.ROUND);
                 paint.setStrokeWidth(4);
 
+                textPaint = new TextPaint();
+                textPaint.setTextSize(28);
+                textPaint.setTextAlign(Paint.Align.LEFT);
+                textPaint.setColor(ContextCompat.getColor(ctxt, R.color.colorBlack));
+                textPaint.setTypeface(Typeface.create("Arial", Typeface.NORMAL));
+
                 plotMatrix.createMatrix(displayWidth,displayHeight);
 
                 if(newFarm){
                     plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight(), iconActions.getWidth(), iconActions.getHeight());
+                } else if(state==1){
+                    plotMatrix.fromString(ctxt,prefs.getPreference(user+"_"+farmName.replaceAll(" ","_")),";",iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight(), iconActions.getWidth(), iconActions.getHeight());
                 }
             }
         });
@@ -238,7 +256,10 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         state=0;
         bFarmSaved=false;
         canvasView.invalidate();
-        //TODO: get default farmname, show define farm acres dialog
+        prevFarmName=farmName;
+        int n = prefs.getNumberOfValueItems(user+"_farms",";");
+        farmName = getString(R.string.defaultFarmNamePrefix)+" "+String.valueOf(n+1);
+        defineFarmNameAcres(1,false);
     }
 
     public void addPlot(){
@@ -611,7 +632,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         Date farmDate = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         sdf.setTimeZone(TimeZone.getDefault());
-        String farmDateString = sdf.format(farmDate);
+        farmDateString = sdf.format(farmDate);
 
         String saveString = user + ";" + userPass + ";" + fName + ";" + String.valueOf(farmSize) + ";" + farmDateString + ";" + sMatrix;
         httpConnection http = new httpConnection(this, this);
@@ -656,13 +677,13 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     public void processFinish(String output) {
         bConnecting=false;
         createFarmDialog.dismiss();
+        String fName = farmName.replaceAll(" ", "_");
         if(!output.equals("ko")){
             prefs.appendIfNewValue(user+"_farms",farmName,";");
-            prefs.savePreference(user+"_"+farmName,String.valueOf(farmSize)+";"+sMatrix);
         } else {
             prefs.appendIfNewValue(user+"_farms","*"+farmName,";");
-            prefs.savePreference(user+"_"+farmName,String.valueOf(farmSize)+";"+sMatrix);
         }
+        prefs.savePreference(user+"_"+fName,String.valueOf(farmSize)+";"+farmDateString+";"+sMatrix);
         if(state==0){
             state=1;
             firstFarm=false;
@@ -778,6 +799,10 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         }
 
         private void drawPlot(Canvas canvas, oPlot p, int border, int fill, Bitmap iActions){
+            Rect txtBounds1 = new Rect();
+            Rect txtBounds2 = new Rect();
+            float txtX;
+            float txtY;
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(fill);
             canvas.drawRect(p.x,p.y,p.x+p.w,p.y+p.h,paint);
@@ -785,7 +810,26 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             paint.setColor(border);
             canvas.drawRect(p.x,p.y,p.x+p.w,p.y+p.h,paint);
             canvas.drawBitmap(iActions,p.iActionsX,p.iActionsY,paint);
-            //TODO: write plot label
+
+            //TODO: adjust label Y in both cases
+
+            textPaint.getTextBounds(p.crop1.name,0,p.crop1.name.length(),txtBounds1);
+            if(p.crop2!=null){
+
+                textPaint.getTextBounds(p.crop2.name,0,p.crop2.name.length(),txtBounds2);
+
+                txtX=((p.w-txtBounds1.width())/2)+p.x;
+                txtY=((p.h-(txtBounds1.height()+txtBounds2.height()+textPaint.getTextSize()))/2)+p.y;
+                canvas.drawText(p.crop1.name,(int)txtX,(int)txtY,textPaint);
+
+                txtX=((p.w-txtBounds2.width())/2)+p.x;
+                canvas.drawText(p.crop2.name,(int)txtX,(int)txtY+(textPaint.getTextSize()*1.5f),textPaint);
+
+            } else {
+                txtX=((p.w-txtBounds1.width())/2)+p.x;
+                txtY=((p.h-(txtBounds1.height()))/2)+p.y;
+                canvas.drawText(p.crop1.name,(int)txtX,(int)txtY,textPaint);
+            }
         }
 
         private void drawGhostRectangle(Canvas canvas, oPlot gR, int border){
