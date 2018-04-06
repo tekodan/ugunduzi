@@ -1,9 +1,11 @@
 package ojovoz.ugunduzi;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -44,6 +46,8 @@ public class farmChooser extends AppCompatActivity {
         prefs = new preferenceManager(this);
         server = prefs.getPreference("server");
 
+        prefs.savePreference("farm","");
+
         fillTable();
 
     }
@@ -75,7 +79,7 @@ public class farmChooser extends AppCompatActivity {
                 cb.setButtonDrawable(R.drawable.custom_checkbox);
                 cb.setId(n);
                 cb.setPadding(4, 4, 4, 4);
-                cb.setChecked(true);
+                cb.setChecked(false);
                 checkboxes.add(cb);
                 trow.addView(cb, lp);
 
@@ -118,31 +122,59 @@ public class farmChooser extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case 0:
-                //create new farm
+                goToFarm(null);
                 break;
             case 1:
-                //delete selected farms
+                //TODO delete selected farms
                 break;
             case 2:
-                //switch user
+                confirmExit();
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    public void confirmExit(){
+        AlertDialog.Builder logoutDialog = new AlertDialog.Builder(this);
+
+        logoutDialog.setMessage(getString(R.string.logoutConfirmMessage));
+        logoutDialog.setNegativeButton(R.string.noButtonText,null);
+        logoutDialog.setPositiveButton(R.string.yesButtonText, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                goToLogin();
+            }
+        });
+        logoutDialog.create();
+        logoutDialog.show();
+    }
+
+    public void goToLogin(){
+        prefs.savePreference("user","");
+        final Context context = this;
+        Intent i = new Intent(context, login.class);
+        startActivity(i);
+        finish();
+    }
+
     public void goToFarm(View v){
-        TextView tv = (TextView)v;
-        tv.setBackgroundColor(ContextCompat.getColor(this,R.color.colorPrimaryLight));
-
-        int n = v.getId();
-        String fName = farmsList.get(n);
-
+        String fName="";
+        boolean newFarm=false;
+        if(v!=null) {
+            TextView tv = (TextView) v;
+            tv.setBackgroundColor(ContextCompat.getColor(this, R.color.colorPrimaryLight));
+            int n = v.getId();
+            fName = farmsList.get(n);
+            prefs.savePreference("farm",fName);
+        } else {
+            newFarm=true;
+        }
         final Context context = this;
         Intent i = new Intent(context, farmInterface.class);
         i.putExtra("user", user);
         i.putExtra("userId", userId);
         i.putExtra("userPass", userPass);
-        i.putExtra("newFarm", false);
+        i.putExtra("newFarm", newFarm);
         i.putExtra("firstFarm",false);
         i.putExtra("farmName", fName);
         startActivity(i);

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
@@ -113,6 +112,9 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         newFarm = getIntent().getExtras().getBoolean("newFarm");
         firstFarm = getIntent().getExtras().getBoolean("firstFarm");
 
+        prefs = new preferenceManager(this);
+        server = prefs.getPreference("server");
+
         oCrop seed = new oCrop(this);
         cropList = seed.getCrops();
         cropNamesArray = seed.getCropNames(true).toArray(new CharSequence[cropList.size()]);
@@ -125,17 +127,13 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             bFarmSaved=false;
             state=0;
             this.setTitle(R.string.drawNewFarmTitle);
-            int n=1;
+            int n = (firstFarm) ? 1 : prefs.getNumberOfValueItems(user + "_farms", ";") + 1;;
             defineFarmNameAcres(n,false);
         } else {
             state=1;
             farmName=getIntent().getExtras().getString("farmName");
             this.setTitle(farmName);
-            //TODO: get farm plot matrix and rebuild farm
         }
-
-        prefs = new preferenceManager(this);
-        server = prefs.getPreference("server");
 
         iconMove=BitmapFactory.decodeResource(this.getResources(),R.drawable.move);
         iconResize=BitmapFactory.decodeResource(this.getResources(),R.drawable.resize);
@@ -177,7 +175,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
                 paint.setStrokeWidth(4);
 
                 textPaint = new TextPaint();
-                textPaint.setTextSize(28);
+                textPaint.setTextSize(26);
                 textPaint.setTextAlign(Paint.Align.LEFT);
                 textPaint.setColor(ContextCompat.getColor(ctxt, R.color.colorBlack));
                 textPaint.setTypeface(Typeface.create("Arial", Typeface.NORMAL));
@@ -206,9 +204,9 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             if(!firstFarm) {
                 menu.add(4, 4, 4, R.string.opCancelNewFarm);
             }
-            menu.add(5, 5, 5, R.string.opSwitchUser);
         } else if(state==1){
             menu.add(0, 0, 0, R.string.opCreateNewFarm);
+            menu.add(1, 1, 1, R.string.opGoToOtherFarm);
         }
 
         return super.onPrepareOptionsMenu(menu);
@@ -234,19 +232,28 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
                     saveFarm();
                     break;
                 case 4:
-                    //TODO: cancel creation of new farm
-                    break;
-                case 5:
-                    confirmExit();
+                    cancelNewFarm();
             }
         } else if (state==1){
             switch(item.getItemId()){
                 case 0:
                     createNewFarm();
                     break;
+                case 1:
+                    goToFarmChooser();
             }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void goToFarmChooser(){
+        final Context context = this;
+        Intent i = new Intent(context, farmChooser.class);
+        i.putExtra("user", user);
+        i.putExtra("userId", userId);
+        i.putExtra("userPass", userPass);
+        startActivity(i);
+        finish();
     }
 
     public void createNewFarm(){
@@ -260,6 +267,38 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         int n = prefs.getNumberOfValueItems(user+"_farms",";");
         farmName = getString(R.string.defaultFarmNamePrefix)+" "+String.valueOf(n+1);
         defineFarmNameAcres(1,false);
+    }
+
+    public void cancelNewFarm(){
+        AlertDialog.Builder logoutDialog = new AlertDialog.Builder(this);
+        logoutDialog.setMessage(R.string.cancelNewFarmMessage);
+        logoutDialog.setNegativeButton(R.string.noButtonText,null);
+        logoutDialog.setPositiveButton(R.string.yesButtonText, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                doCancelNewFarm();
+            }
+        });
+        logoutDialog.create();
+        logoutDialog.show();
+    }
+
+    public void doCancelNewFarm(){
+        if(prefs.preferenceExists("farm")){
+            farmName=prefs.getPreference("farm");
+            if(!farmName.isEmpty()){
+                plotMatrix = new oPlotMatrix();
+                plotMatrix.createMatrix(displayWidth,displayHeight);
+                plotMatrix.fromString(this,prefs.getPreference(user+"_"+farmName.replaceAll(" ","_")),";",iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight(), iconActions.getWidth(), iconActions.getHeight());
+                state=1;
+                this.setTitle(farmName);
+                canvasView.invalidate();
+            } else {
+                goToFarmChooser();
+            }
+        } else {
+            goToFarmChooser();
+        }
     }
 
     public void addPlot(){
@@ -288,34 +327,6 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         } else {
             Toast.makeText(this, R.string.selectPlotMessage, Toast.LENGTH_SHORT).show();
         }
-    }
-
-    public void confirmExit(){
-        String msg;
-        AlertDialog.Builder logoutDialog = new AlertDialog.Builder(this);
-        if(!bFarmSaved){
-            msg=getString(R.string.farmHasNotBeenSavedMessage) + " " + getString(R.string.logoutConfirmMessage);
-        } else {
-            msg=getString(R.string.logoutConfirmMessage);
-        }
-        logoutDialog.setMessage(msg);
-        logoutDialog.setNegativeButton(R.string.noButtonText,null);
-        logoutDialog.setPositiveButton(R.string.yesButtonText, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                goToLogin();
-            }
-        });
-        logoutDialog.create();
-        logoutDialog.show();
-    }
-
-    public void goToLogin(){
-        prefs.savePreference("user","");
-        final Context context = this;
-        Intent i = new Intent(context, login.class);
-        startActivity(i);
-        finish();
     }
 
     public void definePlotContents(){
@@ -656,6 +667,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         } else {
             prefs.appendIfNewValue(user+"_farms","*"+fName,";");
             prefs.savePreference(user+"_"+fName,String.valueOf(farmSize)+";"+farmDateString+";"+sMatrix);
+            prefs.savePreference("farm",farmName);
             Toast.makeText(this, R.string.farmSavedMessage, Toast.LENGTH_SHORT).show();
             state=1;
             canvasView.invalidate();
@@ -813,22 +825,24 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
 
             //TODO: adjust label Y in both cases
 
-            textPaint.getTextBounds(p.crop1.name,0,p.crop1.name.length(),txtBounds1);
-            if(p.crop2!=null){
+            if(p.crop1!=null) {
+                textPaint.getTextBounds(p.crop1.name, 0, p.crop1.name.length(), txtBounds1);
+                if (p.crop2 != null) {
 
-                textPaint.getTextBounds(p.crop2.name,0,p.crop2.name.length(),txtBounds2);
+                    textPaint.getTextBounds(p.crop2.name, 0, p.crop2.name.length(), txtBounds2);
 
-                txtX=((p.w-txtBounds1.width())/2)+p.x;
-                txtY=((p.h-(txtBounds1.height()+txtBounds2.height()+textPaint.getTextSize()))/2)+p.y;
-                canvas.drawText(p.crop1.name,(int)txtX,(int)txtY,textPaint);
+                    txtX = ((p.w - txtBounds1.width()) / 2) + p.x;
+                    txtY = p.y + txtBounds1.height() + ((p.h - ((txtBounds1.height()*2) + txtBounds2.height()))/2);
+                    canvas.drawText(p.crop1.name, (int) txtX, (int) txtY, textPaint);
 
-                txtX=((p.w-txtBounds2.width())/2)+p.x;
-                canvas.drawText(p.crop2.name,(int)txtX,(int)txtY+(textPaint.getTextSize()*1.5f),textPaint);
+                    txtX = ((p.w - txtBounds2.width()) / 2) + p.x;
+                    canvas.drawText(p.crop2.name, (int) txtX, (int) txtY + (txtBounds1.height()*1.5f), textPaint);
 
-            } else {
-                txtX=((p.w-txtBounds1.width())/2)+p.x;
-                txtY=((p.h-(txtBounds1.height()))/2)+p.y;
-                canvas.drawText(p.crop1.name,(int)txtX,(int)txtY,textPaint);
+                } else {
+                    txtX = ((p.w - txtBounds1.width()) / 2) + p.x;
+                    txtY = ((p.h - (txtBounds1.height()/2)) / 2) + p.y + (txtBounds1.height()/2);
+                    canvas.drawText(p.crop1.name, (int) txtX, (int) txtY, textPaint);
+                }
             }
         }
 
