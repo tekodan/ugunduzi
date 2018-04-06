@@ -48,4 +48,5 @@
     <string name="opCancelNewFarm">Cancel new farm</string>
     <string name="opGoToOtherFarm">Go to other farm</string>
     <string name="cancelNewFarmMessage">Cancel new farm?</string>
+    <string name="noFarmsSelectedMessage">No farms selected</string>
 </resources>

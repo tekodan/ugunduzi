@@ -15,6 +15,7 @@ import android.widget.CheckBox;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,7 +23,7 @@ import java.util.Iterator;
 /**
  * Created by Eugenio on 27/03/2018.
  */
-public class farmChooser extends AppCompatActivity {
+public class farmChooser extends AppCompatActivity implements httpConnection.AsyncResponse {
 
     String user;
     String userPass;
@@ -33,6 +34,10 @@ public class farmChooser extends AppCompatActivity {
 
     ArrayList<CheckBox> checkboxes;
     ArrayList<String> farmsList;
+
+    String deleteList;
+
+    boolean bConnecting = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,13 +130,41 @@ public class farmChooser extends AppCompatActivity {
                 goToFarm(null);
                 break;
             case 1:
-                //TODO delete selected farms
+                deleteSelectedFarms();
                 break;
             case 2:
                 confirmExit();
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void deleteSelectedFarms(){
+        deleteList="";
+        Iterator<CheckBox> checkBoxIterator = checkboxes.iterator();
+        while (checkBoxIterator.hasNext()) {
+            CheckBox cb = checkBoxIterator.next();
+            if(cb.isChecked()){
+                deleteList = (deleteList.isEmpty()) ? farmsList.get(cb.getId()) : "," + farmsList.get(cb.getId());
+            }
+        }
+        if(!deleteList.isEmpty()){
+            doDeleteFarms();
+        } else {
+            Toast.makeText(this, R.string.noFarmsSelectedMessage, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void doDeleteFarms(){
+        httpConnection http = new httpConnection(this, this);
+        if (http.isOnline()) {
+            if (!bConnecting) {
+                bConnecting = true;
+                http.execute(server + "/mobile/delete_farm.php?user=" + user + "&farm=" + deleteList, "");
+            }
+        } else {
+            prefs.markFarmsAsDeleted(user + "_farms", deleteList);
+        }
     }
 
     public void confirmExit(){
@@ -179,6 +212,14 @@ public class farmChooser extends AppCompatActivity {
         i.putExtra("farmName", fName);
         startActivity(i);
         finish();
+    }
+
+    @Override
+    public void processFinish(String output) {
+        bConnecting=false;
+        if(output.equals("ok")){
+            prefs.deleteFarms(user + "_farms", deleteList);
+        }
     }
 
 }

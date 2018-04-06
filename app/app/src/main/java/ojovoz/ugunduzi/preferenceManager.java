@@ -135,4 +135,12 @@ public class preferenceManager {
         }
         return ret;
     }
+
+    public void markFarmsAsDeleted(String keyName, String farmsCSV){
+        //TODO
+    }
+
+    public void deleteFarms(String keyName, String farmsCSV){
+        //TODO
+    }
 }

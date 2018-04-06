@@ -60,6 +60,11 @@ function deleteFarmPlots($dbh,$farm_id){
 	$result = mysqli_query($dbh,$query);
 }
 
+function deleteFarmData($dbh,$farm_id){
+	$query="DELETE FROM log WHERE plot_id IN (SELECT plot_id FROM plot WHERE farm_id=$farm_id)";
+	$result = mysqli_query($dbh,$query);
+}
+
 function createNewPlot($dbh,$farm_id,$plot_id,$plot_x,$plot_y,$plot_w,$plot_h,$plot_c1,$plot_c2,$plot_t1,$plot_t2){
 	$query="INSERT INTO plot(internal_plot_id, farm_id, plot_x, plot_y, plot_w, plot_h, plot_crop1, plot_crop2, plot_treatment1, plot_treatment2) VALUES ($plot_id, $farm_id, $plot_x,$plot_y,$plot_w,$plot_h,$plot_c1,$plot_c2,$plot_t1,$plot_t2)";
 	$result = mysqli_query($dbh,$query);
