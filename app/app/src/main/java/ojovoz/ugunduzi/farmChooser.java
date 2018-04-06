@@ -60,6 +60,7 @@ public class farmChooser extends AppCompatActivity implements httpConnection.Asy
     void fillTable() {
 
         TableLayout farmTable = (TableLayout)findViewById(R.id.chooserTable);
+        farmTable.removeAllViews();
         checkboxes = new ArrayList<>();
 
         farmsList = prefs.getPreferenceAsArrayList(user+"_farms",";","-");
@@ -164,6 +165,7 @@ public class farmChooser extends AppCompatActivity implements httpConnection.Asy
             }
         } else {
             prefs.markFarmsAsDeleted(user + "_farms", deleteList);
+            fillTable();
         }
     }
 
@@ -219,7 +221,10 @@ public class farmChooser extends AppCompatActivity implements httpConnection.Asy
         bConnecting=false;
         if(output.equals("ok")){
             prefs.deleteFarms(user + "_farms", deleteList);
+        } else {
+            prefs.markFarmsAsDeleted(user + "_farms", deleteList);
         }
+        fillTable();
     }
 
 }
