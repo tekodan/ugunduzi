@@ -192,6 +192,25 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     }
 
     @Override
+    public void onBackPressed () {
+        if(!bFarmSaved && state==0) {
+            AlertDialog.Builder logoutDialog = new AlertDialog.Builder(this);
+            logoutDialog.setMessage(R.string.farmHasNotBeenSavedMessage);
+            logoutDialog.setNegativeButton(R.string.noButtonText,null);
+            logoutDialog.setPositiveButton(R.string.yesButtonText, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    finish();
+                }
+            });
+            logoutDialog.create();
+            logoutDialog.show();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
 
         menu.clear();

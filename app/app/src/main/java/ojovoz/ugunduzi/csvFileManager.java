@@ -68,7 +68,7 @@ public class csvFileManager {
 
     }
 
-    private void deleteCSVFile(Context context) {
+    public void deleteCSVFile(Context context) {
         context.deleteFile(filename);
     }
 }

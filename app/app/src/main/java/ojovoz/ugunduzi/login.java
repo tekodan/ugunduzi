@@ -320,10 +320,12 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
 
     private void startNextActivity() {
 
-        if(prefs.preferenceExists("farm")){
+        boolean bProceed=true;
+
+        if (prefs.preferenceExists("farm")) {
 
             String fName = prefs.getPreference("farm");
-            if(!fName.isEmpty()){
+            if (!fName.isEmpty()) {
                 final Context context = this;
                 Intent i = new Intent(context, farmInterface.class);
                 i.putExtra("user", user);
@@ -334,17 +336,12 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                 i.putExtra("farmName", fName);
                 startActivity(i);
                 finish();
-            } else {
-                final Context context = this;
-                Intent i = new Intent(context, farmChooser.class);
-                i.putExtra("user", user);
-                i.putExtra("userId", userId);
-                i.putExtra("userPass", userPass);
-                startActivity(i);
-                finish();
+                bProceed=false;
             }
 
-        } else {
+        }
+
+        if(bProceed) {
 
             if (prefs.preferenceExists(user + "_farms")) {
                 String userFarms = prefs.getPreference(user + "_farms");
@@ -387,5 +384,6 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                 finish();
             }
         }
+
     }
 }

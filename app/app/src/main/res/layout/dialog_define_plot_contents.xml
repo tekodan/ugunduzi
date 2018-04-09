@@ -29,7 +29,7 @@
                 android:id="@+id/crop1Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:height="40dp"
                 android:background="@drawable/button_background_light"
                 android:text="@string/textNone"
@@ -42,14 +42,14 @@
                 android:layout_height="wrap_content"
                 android:text="@string/enterCrop2Label"
                 android:textColor="@color/colorPrimary"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:textSize="20dp" />
 
             <Button
                 android:id="@+id/crop2Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:height="40dp"
                 android:background="@drawable/button_background_light"
                 android:text="@string/textNone"
@@ -62,14 +62,14 @@
                 android:layout_height="wrap_content"
                 android:text="@string/enterTreatment1Label"
                 android:textColor="@color/colorPrimary"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:textSize="20dp" />
 
             <Button
                 android:id="@+id/treatment1Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:height="40dp"
                 android:background="@drawable/button_background_light"
                 android:text="@string/textNone"
@@ -82,14 +82,14 @@
                 android:layout_height="wrap_content"
                 android:text="@string/enterTreatment2Label"
                 android:textColor="@color/colorPrimary"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:textSize="20dp" />
 
             <Button
                 android:id="@+id/treatment2Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:height="40dp"
                 android:background="@drawable/button_background_light"
                 android:text="@string/textNone"
@@ -100,7 +100,7 @@
                 android:id="@+id/okButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="15dp"
                 android:height="40dp"
                 android:background="@drawable/button_background"
                 android:text="@string/okButtonText"

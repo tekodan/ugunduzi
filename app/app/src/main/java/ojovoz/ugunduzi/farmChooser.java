@@ -1,5 +1,6 @@
 package ojovoz.ugunduzi;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -38,6 +39,8 @@ public class farmChooser extends AppCompatActivity implements httpConnection.Asy
     String deleteList;
 
     boolean bConnecting = false;
+
+    ProgressDialog deletingFarmDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,11 +149,22 @@ public class farmChooser extends AppCompatActivity implements httpConnection.Asy
         while (checkBoxIterator.hasNext()) {
             CheckBox cb = checkBoxIterator.next();
             if(cb.isChecked()){
-                deleteList = (deleteList.isEmpty()) ? farmsList.get(cb.getId()) : "," + farmsList.get(cb.getId());
+                deleteList = (deleteList.isEmpty()) ? farmsList.get(cb.getId()).replaceAll(" ","_") : ";" + farmsList.get(cb.getId());
             }
         }
         if(!deleteList.isEmpty()){
-            doDeleteFarms();
+            AlertDialog.Builder logoutDialog = new AlertDialog.Builder(this);
+            logoutDialog.setMessage(R.string.deleteFarmConfirmMessage);
+            logoutDialog.setNegativeButton(R.string.noButtonText,null);
+            logoutDialog.setPositiveButton(R.string.yesButtonText, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    doDeleteFarms();
+                }
+            });
+            logoutDialog.create();
+            logoutDialog.show();
+
         } else {
             Toast.makeText(this, R.string.noFarmsSelectedMessage, Toast.LENGTH_SHORT).show();
         }
@@ -161,11 +175,36 @@ public class farmChooser extends AppCompatActivity implements httpConnection.Asy
         if (http.isOnline()) {
             if (!bConnecting) {
                 bConnecting = true;
-                http.execute(server + "/mobile/delete_farm.php?user=" + user + "&farm=" + deleteList, "");
+                CharSequence dialogTitle = getString(R.string.deletingFarmsLabel);
+                deletingFarmDialog = new ProgressDialog(this);
+                deletingFarmDialog.setCancelable(true);
+                deletingFarmDialog.setCanceledOnTouchOutside(false);
+                deletingFarmDialog.setMessage(dialogTitle);
+                deletingFarmDialog.setIndeterminate(true);
+                deletingFarmDialog.show();
+                deletingFarmDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface d) {
+                        bConnecting = false;
+                        deletingFarmDialog.dismiss();
+                    }
+                });
+                http.execute(server + "/mobile/delete_farm.php?user=" + userId + "&farm=" + deleteList, "");
             }
         } else {
-            prefs.markFarmsAsDeleted(user + "_farms", deleteList);
+            prefs.markFarmsAsDeleted(user, deleteList, ";");
+            deleteFarmLogs();
             fillTable();
+        }
+    }
+
+    public void deleteFarmLogs(){
+        csvFileManager logfile;
+        String[] logDeleteList = deleteList.split(";");
+        for(int i=0;i<logDeleteList.length;i++){
+            String filename = user + "_" + logDeleteList[i];
+            logfile = new csvFileManager(filename);
+            logfile.deleteCSVFile(this);
         }
     }
 
@@ -219,11 +258,13 @@ public class farmChooser extends AppCompatActivity implements httpConnection.Asy
     @Override
     public void processFinish(String output) {
         bConnecting=false;
+        deletingFarmDialog.dismiss();
         if(output.equals("ok")){
-            prefs.deleteFarms(user + "_farms", deleteList);
+            prefs.deleteFarms(user, deleteList, ";");
         } else {
-            prefs.markFarmsAsDeleted(user + "_farms", deleteList);
+            prefs.markFarmsAsDeleted(user, deleteList, ";");
         }
+        deleteFarmLogs();
         fillTable();
     }
 

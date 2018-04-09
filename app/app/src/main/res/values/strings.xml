@@ -23,7 +23,7 @@
     <string name="opAddPlot">Add plot</string>
     <string name="opSaveFarm">Save farm</string>
     <string name="opSwitchUser">Change user</string>
-    <string name="farmHasNotBeenSavedMessage">This farm has not been saved.</string>
+    <string name="farmHasNotBeenSavedMessage">This farm has not been saved. Do you really want to exit?</string>
     <string name="logoutConfirmMessage">Do you really want to log out?</string>
     <string name="yesButtonText">Yes</string>
     <string name="noButtonText">No</string>
@@ -49,4 +49,6 @@
     <string name="opGoToOtherFarm">Switch to other farm</string>
     <string name="cancelNewFarmMessage">Cancel new farm?</string>
     <string name="noFarmsSelectedMessage">No farms selected</string>
+    <string name="deleteFarmConfirmMessage">Do you really want to delete the selected farms?</string>
+    <string name="deletingFarmsLabel">Deleting farms</string>
 </resources>

@@ -6,7 +6,7 @@ $dbh = initDB();
 if(isset($_GET['farm']) && isset($_GET['user'])){
 	$user_id=$_GET['user'];
 	$farm_list=$_GET['farm'];
-	$farm_name=explode(",",$farm_list);
+	$farm_name=explode(";",$farm_list);
 	for($i=0;$i<sizeof($farm_name);$i++){
 		$farm_id=getFarmIDFromNameUser($dbh,$farm_name[$i],$user_id);
 		deleteFarmData($dbh,$farm_id);

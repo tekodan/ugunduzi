@@ -75,21 +75,21 @@ public class preferenceManager {
         SharedPreferences ugunduziPrefs = context.getSharedPreferences("ugunduziPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor prefEditor = ugunduziPrefs.edit();
         prefEditor.putString(keyName, keyValue);
-        prefEditor.commit();
+        prefEditor.apply();
     }
 
     public void savePreferenceBoolean(String keyName, boolean keyValue){
         SharedPreferences ugunduziPrefs = context.getSharedPreferences("ugunduziPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor prefEditor = ugunduziPrefs.edit();
         prefEditor.putBoolean(keyName, keyValue);
-        prefEditor.commit();
+        prefEditor.apply();
     }
 
     public void savePreferenceInt(String keyName, int keyValue){
         SharedPreferences ugunduziPrefs = context.getSharedPreferences("ugunduziPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor prefEditor = ugunduziPrefs.edit();
         prefEditor.putInt(keyName, keyValue);
-        prefEditor.commit();
+        prefEditor.apply();
     }
 
     public boolean valueExistsInList(String keyName, String value, String separator){
@@ -136,11 +136,55 @@ public class preferenceManager {
         return ret;
     }
 
-    public void markFarmsAsDeleted(String keyName, String farmsCSV){
-        //TODO
+    public void deletePreference(String keyName){
+        SharedPreferences ugunduziPrefs = context.getSharedPreferences("ugunduziPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor prefEditor = ugunduziPrefs.edit();
+        prefEditor.remove(keyName);
+        prefEditor.apply();
     }
 
-    public void deleteFarms(String keyName, String farmsCSV){
-        //TODO
+    public void markFarmsAsDeleted(String user, String farmsCSV, String separator){
+        String[] deleteFarmList = farmsCSV.split(";");
+        String[] currentFarmList = getPreference(user + "_farms").split(separator);
+        String newFarms="";
+        for(int i=0;i<currentFarmList.length;i++) {
+            boolean bFound=false;
+            for(int j=0;j<deleteFarmList.length;j++){
+                String deleteFarm = deleteFarmList[j].replaceAll("_"," ");
+                if(currentFarmList[i].equals(deleteFarm)){
+                    bFound=true;
+                    break;
+                }
+            }
+            if(!bFound){
+                newFarms = (newFarms.isEmpty()) ? currentFarmList[i] : newFarms + separator + currentFarmList[i];
+            } else {
+                newFarms = (newFarms.isEmpty()) ? "-" + currentFarmList[i] : newFarms + separator + "-" + currentFarmList[i];
+                deletePreference(user + "_" + currentFarmList[i].replaceAll(" ","_"));
+            }
+        }
+        savePreference(user + "_farms", newFarms);
+    }
+
+    public void deleteFarms(String user, String farmsCSV, String separator){
+        String[] deleteFarmList = farmsCSV.split(";");
+        String[] currentFarmList = getPreference(user + "_farms").split(separator);
+        String newFarms="";
+        for(int i=0;i<currentFarmList.length;i++) {
+            boolean bFound=false;
+            for(int j=0;j<deleteFarmList.length;j++){
+                String deleteFarm = deleteFarmList[j].replaceAll("_"," ");
+                if(currentFarmList[i].equals(deleteFarm)){
+                    bFound=true;
+                    break;
+                }
+            }
+            if(!bFound){
+                newFarms = (newFarms.isEmpty()) ? currentFarmList[i] : newFarms + separator + currentFarmList[i];
+            } else {
+                deletePreference(user + "_" + currentFarmList[i].replaceAll(" ","_"));
+            }
+        }
+        savePreference(user + "_farms", newFarms);
     }
 }
