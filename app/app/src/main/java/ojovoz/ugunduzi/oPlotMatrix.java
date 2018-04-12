@@ -177,7 +177,11 @@ public class oPlotMatrix {
                         plot.state = 1;
                     }
                 } else {
-                    plot.state = 1;
+                    if(actionChooser(plot, x, y)){
+                        plot.state = 5;
+                    } else {
+                        plot.state = 1;
+                    }
                 }
                 ret = plot;
                 break;
@@ -213,6 +217,14 @@ public class oPlotMatrix {
     public boolean isEditing(oPlot p, int x, int y){
         boolean ret = false;
         if (x > p.iContentsX && x < (p.iContentsX + p.iContentsW) && y > p.iContentsY && y < (p.iContentsY + p.iContentsH)) {
+            ret = true;
+        }
+        return ret;
+    }
+
+    public boolean actionChooser(oPlot p, int x, int y){
+        boolean ret = false;
+        if (x > p.iContentsX && x < (p.iActionsX + p.iActionsW) && y > p.iActionsY && y < (p.iActionsY + p.iActionsH)) {
             ret = true;
         }
         return ret;

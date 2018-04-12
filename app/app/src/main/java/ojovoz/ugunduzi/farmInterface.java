@@ -29,7 +29,10 @@ import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -127,7 +130,17 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             bFarmSaved=false;
             state=0;
             this.setTitle(R.string.drawNewFarmTitle);
-            int n = (firstFarm) ? 1 : prefs.getNumberOfValueItems(user + "_farms", ";") + 1;;
+            int n;
+            if(firstFarm){
+                n=1;
+            } else {
+                n=prefs.getNumberOfValueItems(user + "_farms", ";") + 1;
+                String fName=getString(R.string.defaultFarmNamePrefix)+" "+String.valueOf(n);
+                while(prefs.farmExists(user + "_farms",fName,";")){
+                    n++;
+                    fName=getString(R.string.defaultFarmNamePrefix)+" "+String.valueOf(n);
+                }
+            }
             defineFarmNameAcres(n,false);
         } else {
             state=1;
@@ -285,6 +298,10 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         prevFarmName=farmName;
         int n = prefs.getNumberOfValueItems(user+"_farms",";");
         farmName = getString(R.string.defaultFarmNamePrefix)+" "+String.valueOf(n+1);
+        while(prefs.farmExists(user+"_farms",farmName,";")){
+            n++;
+            farmName = getString(R.string.defaultFarmNamePrefix)+" "+String.valueOf(n+1);
+        }
         defineFarmNameAcres(1,false);
     }
 
@@ -644,6 +661,47 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         dialog.show();
     }
 
+    public void showActionChooser(){
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_action_chooser);
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.setCancelable(true);
+        dialog.getWindow().setLayout(displayWidth-50,550);
+
+        TextView tvCrop = (TextView)dialog.findViewById(R.id.cropsLabel);
+        if(plotMatrix.currentPlot.crop1==null && plotMatrix.currentPlot.crop2==null){
+            tvCrop.setText(tvCrop.getText()+"s: "+getString(R.string.textNone));
+        } else {
+            if(plotMatrix.currentPlot.crop1!=null && plotMatrix.currentPlot.crop2==null){
+                tvCrop.setText(tvCrop.getText()+": "+plotMatrix.currentPlot.crop1.name);
+            } else if(plotMatrix.currentPlot.crop1!=null && plotMatrix.currentPlot.crop2!=null){
+                tvCrop.setText(tvCrop.getText()+"s: "+plotMatrix.currentPlot.crop1.name+", "+plotMatrix.currentPlot.crop2.name);
+            }
+        }
+
+        TextView tvTreatment = (TextView)dialog.findViewById(R.id.treatmentsLabel);
+        if(plotMatrix.currentPlot.treatment1==null && plotMatrix.currentPlot.treatment2==null){
+            tvTreatment.setText(tvTreatment.getText()+"s: "+getString(R.string.textNone));
+        } else {
+            if(plotMatrix.currentPlot.treatment1!=null && plotMatrix.currentPlot.treatment2==null){
+                tvTreatment.setText(tvTreatment.getText()+": "+plotMatrix.currentPlot.treatment1.name);
+            } else if(plotMatrix.currentPlot.treatment1!=null && plotMatrix.currentPlot.treatment2!=null){
+                tvTreatment.setText(tvTreatment.getText()+"s: "+plotMatrix.currentPlot.treatment1.name+", "+plotMatrix.currentPlot.treatment2.name);
+            }
+        }
+
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                plotMatrix.currentPlot.state=1;
+                canvasView.invalidate();
+            }
+        });
+
+        dialog.show();
+    }
+
     public void updateFarmData(String fName, int fSize){
         fName = fName.replaceAll(";", " ");
         fName = fName.replaceAll("\\*", "");
@@ -745,6 +803,8 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
                 if(plotMatrix.currentPlot!=null) {
                     if (plotMatrix.currentPlot.state == 4 && state==0) {
                         definePlotContents();
+                    } else if (plotMatrix.currentPlot.state == 5 && state==1){
+                        showActionChooser();
                     }
                 }
                 return b;
@@ -841,8 +901,6 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             paint.setColor(border);
             canvas.drawRect(p.x,p.y,p.x+p.w,p.y+p.h,paint);
             canvas.drawBitmap(iActions,p.iActionsX,p.iActionsY,paint);
-
-            //TODO: adjust label Y in both cases
 
             if(p.crop1!=null) {
                 textPaint.getTextBounds(p.crop1.name, 0, p.crop1.name.length(), txtBounds1);

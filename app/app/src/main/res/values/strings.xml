@@ -51,4 +51,9 @@
     <string name="noFarmsSelectedMessage">No farms selected</string>
     <string name="deleteFarmConfirmMessage">Do you really want to delete the selected farms?</string>
     <string name="deletingFarmsLabel">Deleting farms</string>
+    <string name="pictureSoundButtonText">Picture + sound</string>
+    <string name="dataButtonText">Data</string>
+    <string name="manageRecordsButton">Plot records</string>
+    <string name="plotCropLabel">Crop</string>
+    <string name="plotTreatmentLabel">Treatment</string>
 </resources>
