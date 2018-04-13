@@ -238,7 +238,9 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             }
         } else if(state==1){
             menu.add(0, 0, 0, R.string.opCreateNewFarm);
-            menu.add(1, 1, 1, R.string.opGoToOtherFarm);
+            if(prefs.getNumberOfValueItems(user + "_farms",";")>1) {
+                menu.add(1, 1, 1, R.string.opGoToOtherFarm);
+            }
         }
 
         return super.onPrepareOptionsMenu(menu);

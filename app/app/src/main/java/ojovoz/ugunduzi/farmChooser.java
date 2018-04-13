@@ -122,7 +122,9 @@ public class farmChooser extends AppCompatActivity implements httpConnection.Asy
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         super.onCreateOptionsMenu(menu);
         menu.add(0, 0, 0, R.string.opCreateNewFarm);
-        menu.add(1, 1, 1, R.string.opDeleteSelectedFarms);
+        if(farmsList.size()>1) {
+            menu.add(1, 1, 1, R.string.opDeleteSelectedFarms);
+        }
         menu.add(2, 2, 2, R.string.opSwitchUser);
         return true;
     }

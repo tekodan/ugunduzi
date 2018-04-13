@@ -119,6 +119,8 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
         dataItems.add("users");
         dataItems.add("crops");
         dataItems.add("treatments");
+        dataItems.add("units");
+        dataItems.add("data_items");
         dataItems.add("users_farms");
 
         httpConnection http = new httpConnection(this, this);
@@ -321,12 +323,13 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
     private void startNextActivity() {
 
         boolean bProceed=true;
+        final Context context = this;
 
         if (prefs.preferenceExists("farm")) {
 
             String fName = prefs.getPreference("farm");
             if (!fName.isEmpty()) {
-                final Context context = this;
+
                 Intent i = new Intent(context, farmInterface.class);
                 i.putExtra("user", user);
                 i.putExtra("userId", userId);
@@ -349,7 +352,6 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                 if (userFarmsList.length > 1) {
                     //farm chooser
 
-                    final Context context = this;
                     Intent i = new Intent(context, farmChooser.class);
                     i.putExtra("user", user);
                     i.putExtra("userId", userId);
@@ -358,22 +360,33 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                     finish();
 
                 } else {
-                    //go to single farm
+                    if (!userFarmsList[0].isEmpty()) {
+                        //go to single farm
 
-                    final Context context = this;
-                    Intent i = new Intent(context, farmInterface.class);
-                    i.putExtra("user", user);
-                    i.putExtra("userId", userId);
-                    i.putExtra("userPass", userPass);
-                    i.putExtra("newFarm", false);
-                    i.putExtra("firstFarm", false);
-                    i.putExtra("farmName", userFarmsList[0]);
-                    startActivity(i);
-                    finish();
+                        Intent i = new Intent(context, farmInterface.class);
+                        i.putExtra("user", user);
+                        i.putExtra("userId", userId);
+                        i.putExtra("userPass", userPass);
+                        i.putExtra("newFarm", false);
+                        i.putExtra("firstFarm", false);
+                        i.putExtra("farmName", userFarmsList[0]);
+                        startActivity(i);
+                        finish();
 
+                    } else {
+
+                        Intent i = new Intent(context, farmInterface.class);
+                        i.putExtra("user", user);
+                        i.putExtra("userId", userId);
+                        i.putExtra("userPass", userPass);
+                        i.putExtra("newFarm", true);
+                        i.putExtra("firstFarm", true);
+                        startActivity(i);
+                        finish();
+                    }
                 }
             } else {
-                final Context context = this;
+
                 Intent i = new Intent(context, farmInterface.class);
                 i.putExtra("user", user);
                 i.putExtra("userId", userId);
