@@ -241,6 +241,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             if(prefs.getNumberOfValueItems(user + "_farms",";")>1) {
                 menu.add(1, 1, 1, R.string.opGoToOtherFarm);
             }
+            menu.add(2, 2, 2, R.string.opSwitchUser);
         }
 
         return super.onPrepareOptionsMenu(menu);
@@ -275,9 +276,36 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
                     break;
                 case 1:
                     goToFarmChooser();
+                    break;
+                case 2:
+                    confirmExit();
             }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void confirmExit(){
+        AlertDialog.Builder logoutDialog = new AlertDialog.Builder(this);
+
+        logoutDialog.setMessage(getString(R.string.logoutConfirmMessage));
+        logoutDialog.setNegativeButton(R.string.noButtonText,null);
+        logoutDialog.setPositiveButton(R.string.yesButtonText, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                goToLogin();
+            }
+        });
+        logoutDialog.create();
+        logoutDialog.show();
+    }
+
+    public void goToLogin(){
+        prefs.savePreference("user","");
+        prefs.deletePreference("farm");
+        final Context context = this;
+        Intent i = new Intent(context, login.class);
+        startActivity(i);
+        finish();
     }
 
     public void goToFarmChooser(){
@@ -671,27 +699,52 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         dialog.setCancelable(true);
         dialog.getWindow().setLayout(displayWidth-50,550);
 
-        TextView tvCrop = (TextView)dialog.findViewById(R.id.cropsLabel);
+        TextView tt = (TextView)dialog.findViewById(R.id.plotLabel);
+
+        String title="";
         if(plotMatrix.currentPlot.crop1==null && plotMatrix.currentPlot.crop2==null){
-            tvCrop.setText(tvCrop.getText()+"s: "+getString(R.string.textNone));
+            title=getString(R.string.plotCropLabel)+"s: "+getString(R.string.textNone);
         } else {
             if(plotMatrix.currentPlot.crop1!=null && plotMatrix.currentPlot.crop2==null){
-                tvCrop.setText(tvCrop.getText()+": "+plotMatrix.currentPlot.crop1.name);
+                title=getString(R.string.plotCropLabel)+": "+plotMatrix.currentPlot.crop1.name;
             } else if(plotMatrix.currentPlot.crop1!=null && plotMatrix.currentPlot.crop2!=null){
-                tvCrop.setText(tvCrop.getText()+"s: "+plotMatrix.currentPlot.crop1.name+", "+plotMatrix.currentPlot.crop2.name);
+                title=getString(R.string.plotCropLabel)+"s: "+plotMatrix.currentPlot.crop1.name+", "+plotMatrix.currentPlot.crop2.name;
             }
         }
-
-        TextView tvTreatment = (TextView)dialog.findViewById(R.id.treatmentsLabel);
+        title+="\n";
         if(plotMatrix.currentPlot.treatment1==null && plotMatrix.currentPlot.treatment2==null){
-            tvTreatment.setText(tvTreatment.getText()+"s: "+getString(R.string.textNone));
+            title+=getString(R.string.plotTreatmentLabel)+"s: "+getString(R.string.textNone);
+            tt.setBackgroundColor(ContextCompat.getColor(this,R.color.colorFillDefault));
         } else {
             if(plotMatrix.currentPlot.treatment1!=null && plotMatrix.currentPlot.treatment2==null){
-                tvTreatment.setText(tvTreatment.getText()+": "+plotMatrix.currentPlot.treatment1.name);
+                title+=getString(R.string.plotTreatmentLabel)+": "+plotMatrix.currentPlot.treatment1.name;
+                if(plotMatrix.currentPlot.treatment1.category==0) {
+                    tt.setBackgroundColor(ContextCompat.getColor(this, R.color.colorFillPestControl));
+                } else {
+                    tt.setBackgroundColor(ContextCompat.getColor(this, R.color.colorFillSoilManagement));
+                }
             } else if(plotMatrix.currentPlot.treatment1!=null && plotMatrix.currentPlot.treatment2!=null){
-                tvTreatment.setText(tvTreatment.getText()+"s: "+plotMatrix.currentPlot.treatment1.name+", "+plotMatrix.currentPlot.treatment2.name);
+                title+=getString(R.string.plotTreatmentLabel)+"s: "+plotMatrix.currentPlot.treatment1.name+", "+plotMatrix.currentPlot.treatment2.name;
+                if(plotMatrix.currentPlot.treatment1.category!=plotMatrix.currentPlot.treatment2.category){
+                    tt.setBackgroundColor(ContextCompat.getColor(this, R.color.colorFillSoilManagementAndPestControl));
+                } else {
+                    if(plotMatrix.currentPlot.treatment1.category==0) {
+                        tt.setBackgroundColor(ContextCompat.getColor(this, R.color.colorFillPestControl));
+                    } else {
+                        tt.setBackgroundColor(ContextCompat.getColor(this, R.color.colorFillSoilManagement));
+                    }
+                }
             }
         }
+        tt.setText(title);
+
+        Button dataButton = (Button)dialog.findViewById(R.id.dataButton);
+        dataButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goToDataEntry();
+            }
+        });
 
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -702,6 +755,38 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         });
 
         dialog.show();
+    }
+
+    public void goToDataEntry(){
+        final Context context = this;
+        Intent i = new Intent(context, enterData.class);
+        i.putExtra("user", user);
+        i.putExtra("userId", userId);
+        i.putExtra("userPass", userPass);
+        i.putExtra("farmName",farmName);
+        i.putExtra("plot",plotMatrix.currentPlot.id);
+        if(plotMatrix.currentPlot.crop1!=null) {
+            i.putExtra("crop1", plotMatrix.currentPlot.crop1.id);
+        } else {
+            i.putExtra("crop1", "-1");
+        }
+        if(plotMatrix.currentPlot.crop2!=null) {
+            i.putExtra("crop2", plotMatrix.currentPlot.crop2.id);
+        } else {
+            i.putExtra("crop2", "-1");
+        }
+        if(plotMatrix.currentPlot.treatment1!=null) {
+            i.putExtra("treatment1", plotMatrix.currentPlot.treatment1.id);
+        } else {
+            i.putExtra("treatment1", "-1");
+        }
+        if(plotMatrix.currentPlot.treatment2!=null) {
+            i.putExtra("treatment2", plotMatrix.currentPlot.treatment2.id);
+        } else {
+            i.putExtra("treatment2", "-1");
+        }
+        startActivity(i);
+        finish();
     }
 
     public void updateFarmData(String fName, int fSize){

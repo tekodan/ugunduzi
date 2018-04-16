@@ -54,7 +54,7 @@ public class farmChooser extends AppCompatActivity implements httpConnection.Asy
         prefs = new preferenceManager(this);
         server = prefs.getPreference("server");
 
-        prefs.savePreference("farm","");
+        prefs.deletePreference("farm");
 
         fillTable();
 
