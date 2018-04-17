@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net
 --
 -- Servidor: 192.168.86.55
--- Tiempo de generación: 13-04-2018 a las 12:39:56
+-- Tiempo de generación: 17-04-2018 a las 12:05:37
 -- Versión del servidor: 5.5.57-0+deb7u1-log
 -- Versión de PHP: 5.3.29-1~dotdeb.0
 
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `data_item` (
   `data_item_type` int(10) unsigned NOT NULL COMMENT '0=number, 1=date, 2=cost',
   `is_crop_specific` tinyint(1) NOT NULL,
   `is_treatment_specific` tinyint(1) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
 
 --
 -- Volcado de datos para la tabla `data_item`
@@ -66,9 +66,10 @@ INSERT INTO `data_item` (`data_item_id`, `data_item_name`, `data_item_default_un
 (2, 'Planting', 0, 1, 1, 0),
 (3, 'Harvesting', 0, 1, 1, 0),
 (4, 'Yield', 1, 0, 1, 0),
-(5, 'Application', 0, 1, 0, 1),
-(6, 'Costs', 0, 2, 1, 1),
-(7, 'Sales', 0, 2, 1, 0);
+(5, 'Application (treatment)', 0, 1, 0, 1),
+(6, 'Costs (crop)', 4, 2, 1, 0),
+(7, 'Costs (treatment)', 4, 2, 0, 1),
+(8, 'Sales', 4, 2, 1, 0);
 
 -- --------------------------------------------------------
 
@@ -83,7 +84,7 @@ CREATE TABLE IF NOT EXISTS `farm` (
   `farm_size_acres` int(10) unsigned NOT NULL,
   `farm_date_created` date NOT NULL,
   `parent_farm_id` int(10) unsigned NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
 
 --
 -- Volcado de datos para la tabla `farm`
@@ -96,7 +97,10 @@ INSERT INTO `farm` (`farm_id`, `user_id`, `farm_name`, `farm_size_acres`, `farm_
 (15, 2, 'Shamba 5', 1, '2018-04-04', 0),
 (16, 4, 'Shamba 1', 1, '2018-04-09', 0),
 (17, 2, 'Shamba 6', 1, '2018-04-09', 0),
-(18, 2, 'Shamba 7', 1, '2018-04-09', 0);
+(18, 2, 'Shamba 7', 1, '2018-04-09', 0),
+(19, 2, 'Shamba 1', 1, '2018-04-13', 0),
+(20, 1, 'Shamba 1', 1, '2018-04-13', 0),
+(21, 1, 'Shamba 2', 1, '2018-04-16', 0);
 
 -- --------------------------------------------------------
 
@@ -111,6 +115,8 @@ CREATE TABLE IF NOT EXISTS `log` (
   `log_data_item_id` int(10) unsigned NOT NULL,
   `log_value` int(10) unsigned NOT NULL,
   `log_units_id` int(10) unsigned NOT NULL,
+  `log_crop_id` int(10) unsigned NOT NULL,
+  `log_treatment_id` int(10) unsigned NOT NULL,
   `log_picture` varchar(100) NOT NULL,
   `log_sound` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -133,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `plot` (
   `plot_crop2` int(10) unsigned NOT NULL,
   `plot_treatment1` int(10) unsigned NOT NULL,
   `plot_treatment2` int(10) unsigned NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=87 DEFAULT CHARSET=utf8;
 
 --
 -- Volcado de datos para la tabla `plot`
@@ -162,7 +168,12 @@ INSERT INTO `plot` (`plot_id`, `internal_plot_id`, `farm_id`, `plot_x`, `plot_y`
 (74, 12, 15, 3, 3, 1, 1, 1, 0, 1, 0),
 (75, 0, 16, 0, 0, 2, 2, 3, 0, 2, 0),
 (78, 0, 17, 1, 1, 3, 3, 3, 0, 1, 2),
-(79, 0, 18, 0, 0, 3, 2, 1, 0, 0, 0);
+(79, 0, 18, 0, 0, 3, 2, 1, 0, 0, 0),
+(82, 0, 19, 0, 0, 4, 2, 1, 0, 2, 0),
+(83, 1, 19, 0, 2, 4, 2, 2, 0, 1, 0),
+(84, 0, 20, 0, 0, 4, 2, 1, 0, 2, 0),
+(85, 1, 20, 0, 2, 4, 2, 2, 0, 1, 0),
+(86, 0, 21, 0, 0, 1, 1, 1, 0, 2, 1);
 
 -- --------------------------------------------------------
 
@@ -192,16 +203,18 @@ INSERT INTO `treatment` (`treatment_id`, `treatment_name`, `treatment_category`)
 
 CREATE TABLE IF NOT EXISTS `units` (
   `units_id` int(10) unsigned NOT NULL,
-  `units_name` varchar(100) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+  `units_name` varchar(100) NOT NULL,
+  `units_type` int(10) unsigned NOT NULL COMMENT '0=number, 1=date, 2=cost'
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 --
 -- Volcado de datos para la tabla `units`
 --
 
-INSERT INTO `units` (`units_id`, `units_name`) VALUES
-(1, 'Kg'),
-(2, 'Baskets');
+INSERT INTO `units` (`units_id`, `units_name`, `units_type`) VALUES
+(1, 'Kg', 0),
+(2, 'Baskets', 0),
+(4, 'TZS', 2);
 
 -- --------------------------------------------------------
 
@@ -294,12 +307,12 @@ ALTER TABLE `crop`
 -- AUTO_INCREMENT de la tabla `data_item`
 --
 ALTER TABLE `data_item`
-  MODIFY `data_item_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=8;
+  MODIFY `data_item_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=9;
 --
 -- AUTO_INCREMENT de la tabla `farm`
 --
 ALTER TABLE `farm`
-  MODIFY `farm_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=19;
+  MODIFY `farm_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=22;
 --
 -- AUTO_INCREMENT de la tabla `log`
 --
@@ -309,7 +322,7 @@ ALTER TABLE `log`
 -- AUTO_INCREMENT de la tabla `plot`
 --
 ALTER TABLE `plot`
-  MODIFY `plot_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=80;
+  MODIFY `plot_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=87;
 --
 -- AUTO_INCREMENT de la tabla `treatment`
 --
@@ -319,7 +332,7 @@ ALTER TABLE `treatment`
 -- AUTO_INCREMENT de la tabla `units`
 --
 ALTER TABLE `units`
-  MODIFY `units_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
+  MODIFY `units_id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=5;
 --
 -- AUTO_INCREMENT de la tabla `user`
 --

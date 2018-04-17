@@ -145,6 +145,11 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         } else {
             state=1;
             farmName=getIntent().getExtras().getString("farmName");
+            if(farmName.isEmpty()){
+                prefs.deletePreference("farm");
+                prefs.deletePreference("user");
+                goToLogin();
+            }
             this.setTitle(farmName);
         }
 

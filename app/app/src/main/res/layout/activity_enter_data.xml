@@ -80,11 +80,36 @@
             android:layout_height="match_parent"
             android:text="@string/enterNewDataItemButtonLabel"
             android:id="@+id/enterDataButton"
+            android:onClick="showDataItemsSelector"
             android:layout_marginTop="20dp"
             android:textSize="20dp"
             android:height="40dp"
             android:background="@drawable/button_background"
             android:textColor="@color/colorWhite" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/enterCropLabel"
+            android:id="@+id/enterCropButton"
+            android:layout_marginTop="20dp"
+            android:textSize="20dp"
+            android:height="40dp"
+            android:background="@drawable/button_background_light"
+            android:textColor="@color/colorBlack"
+            android:visibility="invisible" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/enterTreatmentLabel"
+            android:id="@+id/enterTreatmentButton"
+            android:layout_marginTop="20dp"
+            android:textSize="20dp"
+            android:height="40dp"
+            android:background="@drawable/button_background_light"
+            android:textColor="@color/colorBlack"
+            android:visibility="invisible" />
 
         <TextView
             android:layout_width="match_parent"
@@ -104,6 +129,7 @@
             android:layout_marginTop="20dp"
             android:textSize="20dp"
             android:height="40dp"
+            android:onClick="displayDatePicker"
             android:visibility="invisible"
             android:background="@drawable/button_background_light"
             android:textColor="@color/colorBlack" />
@@ -126,6 +152,8 @@
             android:textColor="@color/colorBlack"
             android:inputType="numberDecimal"
             android:layout_marginTop="20dp"
+            android:padding="@dimen/activity_view_padding"
+            android:ems="10"
             android:imeOptions="actionNext"
             android:visibility="invisible"
             android:singleLine="true" />
@@ -140,16 +168,18 @@
             android:visibility="invisible"
             android:textSize="20dp" />
 
-        <EditText
+        <Button
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:text="@string/emptyString"
             android:id="@+id/dataItemUnits"
-            android:background="@color/colorInput"
-            android:textColor="@color/colorBlack"
-            android:imeOptions="actionDone"
             android:layout_marginTop="20dp"
-            android:visibility="invisible"
-            android:singleLine="true" />
+            android:textSize="20dp"
+            android:height="40dp"
+            android:onClick="showUnitsSelector"
+            android:background="@drawable/button_background_light"
+            android:textColor="@color/colorBlack"
+            android:visibility="invisible" />
 
         <Button
             android:layout_width="match_parent"

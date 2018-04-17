@@ -115,6 +115,8 @@ public class farmChooser extends AppCompatActivity implements httpConnection.Asy
 
                 n++;
             }
+        } else {
+            goToLogin();
         }
     }
 

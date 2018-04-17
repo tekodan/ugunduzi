@@ -24,16 +24,22 @@ public class oLog {
     public float value;
     public oUnit units;
 
+    public oCrop crop;
+    public oTreatment treatment;
+
     public String picture;
     public String sound;
 
     private Context context;
 
-    oLog(){
+    private dateHelper dH;
 
+    oLog(){
+        dH = new dateHelper();
     }
 
     oLog(Context c){
+        dH = new dateHelper();
         context=c;
     }
 
@@ -51,14 +57,18 @@ public class oLog {
                 l.farmName = record[0];
                 l.userId = Integer.parseInt(record[1]);
                 l.plotId = Integer.parseInt(record[2]);
-                l.date = stringToDate(record[3]);
+                l.date = dH.stringToDate(record[3]);
                 oDataItem di = new oDataItem(context);
                 l.dataItem = di.getDataItemFromId(Integer.parseInt(record[4]));
                 l.value = Float.parseFloat(record[5]);
                 oUnit u = new oUnit(context);
                 l.units = u.getUnitFromId(Integer.parseInt(record[6]));
-                l.picture = record[7];
-                l.sound = record[8];
+                oCrop c = new oCrop(context);
+                l.crop = c.getCropFromId(Integer.parseInt(record[7]));
+                oTreatment t = new oTreatment(context);
+                l.treatment = t.getTreatmentFromId(Integer.parseInt(record[8]));
+                l.picture = record[9];
+                l.sound = record[10];
                 ret.add(l);
             }
         }
@@ -80,14 +90,18 @@ public class oLog {
                     l.farmName = record[0];
                     l.userId = Integer.parseInt(record[1]);
                     l.plotId = Integer.parseInt(record[2]);
-                    l.date = stringToDate(record[3]);
+                    l.date = dH.stringToDate(record[3]);
                     oDataItem di = new oDataItem(context);
                     l.dataItem = di.getDataItemFromId(Integer.parseInt(record[4]));
                     l.value = Float.parseFloat(record[5]);
                     oUnit u = new oUnit(context);
                     l.units = u.getUnitFromId(Integer.parseInt(record[6]));
-                    l.picture = record[7];
-                    l.sound = record[8];
+                    oCrop c = new oCrop(context);
+                    l.crop = c.getCropFromId(Integer.parseInt(record[7]));
+                    oTreatment t = new oTreatment(context);
+                    l.treatment = t.getTreatmentFromId(Integer.parseInt(record[8]));
+                    l.picture = record[9];
+                    l.sound = record[10];
                     ret.add(l);
                 }
             }
@@ -110,14 +124,18 @@ public class oLog {
                     l.farmName = record[0];
                     l.userId = Integer.parseInt(record[1]);
                     l.plotId = Integer.parseInt(record[2]);
-                    l.date = stringToDate(record[3]);
+                    l.date = dH.stringToDate(record[3]);
                     oDataItem di = new oDataItem(context);
                     l.dataItem = di.getDataItemFromId(Integer.parseInt(record[4]));
                     l.value = Float.parseFloat(record[5]);
                     oUnit u = new oUnit(context);
                     l.units = u.getUnitFromId(Integer.parseInt(record[6]));
-                    l.picture = record[7];
-                    l.sound = record[8];
+                    oCrop c = new oCrop(context);
+                    l.crop = c.getCropFromId(Integer.parseInt(record[7]));
+                    oTreatment t = new oTreatment(context);
+                    l.treatment = t.getTreatmentFromId(Integer.parseInt(record[8]));
+                    l.picture = record[9];
+                    l.sound = record[10];
                     ret.add(l);
                 }
             }
@@ -125,21 +143,5 @@ public class oLog {
         return ret;
     }
 
-    public Date stringToDate(String d) {
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        sdf.setTimeZone(TimeZone.getDefault());
-        try {
-            date = sdf.parse(d);
-        } catch (ParseException e) {
 
-        }
-        return date;
-    }
-
-    public String dateToString(Date d) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        sdf.setTimeZone(TimeZone.getDefault());
-        return sdf.format(d);
-    }
 }

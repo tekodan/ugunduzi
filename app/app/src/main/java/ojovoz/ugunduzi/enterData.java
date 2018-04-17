@@ -1,5 +1,6 @@
 package ojovoz.ugunduzi;
 
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,10 +9,18 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.TableLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by Eugenio on 16/04/2018.
@@ -29,14 +38,26 @@ public class enterData extends AppCompatActivity {
     public oTreatment treatment1;
     public oTreatment treatment2;
 
+    public Date dataItemDate;
+
     public ArrayList<oLog> plotLog;
 
     boolean bChanges = false;
+    private dateHelper dH;
+
+    ArrayList<oDataItem> dataItemsList;
+    public CharSequence dataItemsNamesArray[];
+    public oDataItem chosenDataItem;
+
+    ArrayList<oUnit> unitsList;
+    public CharSequence unitsNamesArray[];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_enter_data);
+
+        dH = new dateHelper();
 
         oCrop seed = new oCrop(this);
         oTreatment action = new oTreatment(this);
@@ -92,6 +113,12 @@ public class enterData extends AppCompatActivity {
             }
         }
         tt.setText(title);
+
+        dataItemDate = new Date();
+
+        oDataItem d = new oDataItem(this);
+        dataItemsList = d.getDataItems();
+        dataItemsNamesArray = d.getDataItemNames().toArray(new CharSequence[dataItemsList.size()]);
 
         plotLog = log.createLog(farmName, plot);
         if (plotLog.size() == 0) {
@@ -159,6 +186,153 @@ public class enterData extends AppCompatActivity {
         i.putExtra("firstFarm", false);
         startActivity(i);
         finish();
+    }
+
+    public void showDataItemsSelector(View v){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setNegativeButton(R.string.cancelButtonText, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        final ListAdapter adapter = new ArrayAdapter<>(this,R.layout.checked_list_template,dataItemsNamesArray);
+        builder.setSingleChoiceItems(adapter,-1,new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if(i>=0) {
+                    String chosenDataItem = dataItemsNamesArray[i].toString();
+                    Button b = (Button)findViewById(R.id.enterDataButton);
+                    b.setText(chosenDataItem);
+                    showFields(i);
+                }
+                dialogInterface.dismiss();
+            }
+        });
+        AlertDialog dialogDataItems = builder.create();
+        dialogDataItems.show();
+    }
+
+    public void showFields(int i){
+        chosenDataItem = dataItemsList.get(i);
+        Button bc = (Button)findViewById(R.id.enterCropButton);
+        Button bt = (Button)findViewById(R.id.enterTreatmentButton);
+        TextView td = (TextView)findViewById(R.id.enterDateText);
+        Button bd = (Button)findViewById(R.id.dateButton);
+        TextView tv = (TextView)findViewById(R.id.enterValueText);
+        EditText ev = (EditText)findViewById(R.id.dataItemValue);
+        TextView tu = (TextView)findViewById(R.id.enterUnitsText);
+        Button bu = (Button)findViewById(R.id.dataItemUnits);
+        Button bs = (Button)findViewById(R.id.saveButton);
+
+        if(chosenDataItem.isCropSpecific){
+            bc.setVisibility(View.VISIBLE);
+            //TODO: build crop selector
+        } else {
+            bc.setVisibility(View.GONE);
+        }
+
+        if(chosenDataItem.isTreatmentSpecific){
+            bt.setVisibility(View.VISIBLE);
+            //TODO: build treatment selector
+        } else {
+            bt.setVisibility(View.GONE);
+        }
+
+        td.setVisibility(View.VISIBLE);
+        bd.setVisibility(View.VISIBLE);
+        bd.setText(dH.dateToString(dataItemDate));
+
+        switch(chosenDataItem.type){
+            case 0:
+                //number
+                tv.setVisibility(View.VISIBLE);
+                ev.setVisibility(View.VISIBLE);
+                tu.setVisibility(View.VISIBLE);
+                bu.setVisibility(View.VISIBLE);
+                bu.setText(chosenDataItem.defaultUnits.name);
+                break;
+            case 1:
+                //date
+                tv.setVisibility(View.GONE);
+                ev.setVisibility(View.GONE);
+                tu.setVisibility(View.GONE);
+                bu.setVisibility(View.GONE);
+                break;
+            case 2:
+                //cost
+                tv.setVisibility(View.VISIBLE);
+                ev.setVisibility(View.VISIBLE);
+                tu.setVisibility(View.VISIBLE);
+                bu.setVisibility(View.VISIBLE);
+                bu.setText(chosenDataItem.defaultUnits.name);
+        }
+        bs.setVisibility(View.VISIBLE);
+    }
+
+    public void displayDatePicker(View v){
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_datepicker);
+
+        DatePicker dp = (DatePicker) dialog.findViewById(R.id.datePicker);
+        Calendar calActivity = Calendar.getInstance();
+        calActivity.setTime(dataItemDate);
+        dp.init(calActivity.get(Calendar.YEAR), calActivity.get(Calendar.MONTH), calActivity.get(Calendar.DAY_OF_MONTH), null);
+
+        Calendar calMax = Calendar.getInstance();
+        calMax.setTime(new Date());
+
+        dp.setMaxDate(calMax.getTimeInMillis());
+
+        Button dialogButton = (Button) dialog.findViewById(R.id.okButton);
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DatePicker dp = (DatePicker) dialog.findViewById(R.id.datePicker);
+                int day = dp.getDayOfMonth();
+                int month = dp.getMonth();
+                int year = dp.getYear();
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(year, month, day);
+
+                dataItemDate = calendar.getTime();
+
+                Button cb = (Button) findViewById(R.id.dateButton);
+                cb.setText(dH.dateToString(dataItemDate));
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
+    public void showUnitsSelector(View v){
+        oUnit u = new oUnit(this);
+        unitsList = u.getUnits(chosenDataItem.type);
+        unitsNamesArray = u.getUnitNames(chosenDataItem.type).toArray(new CharSequence[unitsList.size()]);
+        if(unitsList.size()>1) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setCancelable(true);
+            builder.setNegativeButton(R.string.cancelButtonText, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            final ListAdapter adapter = new ArrayAdapter<>(this, R.layout.checked_list_template, unitsNamesArray);
+            builder.setSingleChoiceItems(adapter, -1, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    if (i >= 0) {
+                        String chosenUnits = unitsNamesArray[i].toString();
+                        Button b = (Button) findViewById(R.id.dataItemUnits);
+                        b.setText(chosenUnits);
+                    }
+                    dialogInterface.dismiss();
+                }
+            });
+            AlertDialog dialogUnits = builder.create();
+            dialogUnits.show();
+        }
     }
 
     public void fillTable() {
