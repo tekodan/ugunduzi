@@ -95,6 +95,7 @@
             android:layout_marginTop="20dp"
             android:textSize="20dp"
             android:height="40dp"
+            android:onClick="showCropSelector"
             android:background="@drawable/button_background_light"
             android:textColor="@color/colorBlack"
             android:visibility="invisible" />
@@ -107,6 +108,7 @@
             android:layout_marginTop="20dp"
             android:textSize="20dp"
             android:height="40dp"
+            android:onClick="showTreatmentSelector"
             android:background="@drawable/button_background_light"
             android:textColor="@color/colorBlack"
             android:visibility="invisible" />
@@ -154,7 +156,7 @@
             android:layout_marginTop="20dp"
             android:padding="@dimen/activity_view_padding"
             android:ems="10"
-            android:imeOptions="actionNext"
+            android:imeOptions="actionDone"
             android:visibility="invisible"
             android:singleLine="true" />
 
@@ -189,6 +191,7 @@
             android:layout_marginTop="20dp"
             android:textSize="20dp"
             android:height="40dp"
+            android:onClick="saveData"
             android:background="@drawable/button_background"
             android:visibility="invisible"
             android:textColor="@color/colorWhite" />

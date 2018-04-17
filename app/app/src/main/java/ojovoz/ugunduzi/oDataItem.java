@@ -28,7 +28,7 @@ public class oDataItem {
         context=c;
     }
 
-    public ArrayList<oDataItem> getDataItems(){
+    public ArrayList<oDataItem> getDataItems(boolean bExcludeCropSpecific, boolean bExcludeTreatmentSpecific){
         ArrayList<oDataItem> ret = new ArrayList<>();
         csvFileManager dataItemList;
 
@@ -37,24 +37,26 @@ public class oDataItem {
         if(dataItemCSV!=null) {
             Iterator<String[]> iterator = dataItemCSV.iterator();
             while (iterator.hasNext()) {
-                oUnit u = new oUnit(context);
                 String[] record = iterator.next();
-                oDataItem d = new oDataItem();
-                d.id = Integer.parseInt(record[0]);
-                d.name = record[1];
-                d.defaultUnits = u.getUnitFromId(Integer.parseInt(record[2]));
-                d.type = Integer.parseInt(record[3]);
-                d.isCropSpecific = (record[4].equals("1"));
-                d.isTreatmentSpecific = (record[5].equals("1"));
-                ret.add(d);
+                if(!((record[4].equals("1") && bExcludeCropSpecific) || (record[5].equals("1") && bExcludeTreatmentSpecific))) {
+                    oUnit u = new oUnit(context);
+                    oDataItem d = new oDataItem();
+                    d.id = Integer.parseInt(record[0]);
+                    d.name = record[1];
+                    d.defaultUnits = u.getUnitFromId(Integer.parseInt(record[2]));
+                    d.type = Integer.parseInt(record[3]);
+                    d.isCropSpecific = (record[4].equals("1"));
+                    d.isTreatmentSpecific = (record[5].equals("1"));
+                    ret.add(d);
+                }
             }
         }
         return ret;
     }
 
-    public ArrayList<String> getDataItemNames(){
+    public ArrayList<String> getDataItemNames(boolean bExcludeCropSpecific, boolean bExcludeTreatmentSpecific){
         ArrayList<String> ret = new ArrayList<>();
-        ArrayList<oDataItem> dataItemList = getDataItems();
+        ArrayList<oDataItem> dataItemList = getDataItems(bExcludeCropSpecific, bExcludeTreatmentSpecific);
 
         Iterator<oDataItem> iterator = dataItemList.iterator();
         while(iterator.hasNext()){
@@ -69,7 +71,7 @@ public class oDataItem {
         if(id==0){
             ret=null;
         } else {
-            ArrayList<oDataItem> dataItemList = getDataItems();
+            ArrayList<oDataItem> dataItemList = getDataItems(false,false);
             Iterator<oDataItem> iterator = dataItemList.iterator();
             while (iterator.hasNext()) {
                 oDataItem d = iterator.next();

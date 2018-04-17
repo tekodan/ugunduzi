@@ -117,8 +117,10 @@ public class enterData extends AppCompatActivity {
         dataItemDate = new Date();
 
         oDataItem d = new oDataItem(this);
-        dataItemsList = d.getDataItems();
-        dataItemsNamesArray = d.getDataItemNames().toArray(new CharSequence[dataItemsList.size()]);
+        boolean bExcludeCropSpecific = (crop1==null && crop2==null) ? true : false;
+        boolean bExcludeTreatmentSpecific = (treatment1==null && treatment1==null) ? true : false;
+        dataItemsList = d.getDataItems(bExcludeCropSpecific, bExcludeTreatmentSpecific);
+        dataItemsNamesArray = d.getDataItemNames(bExcludeCropSpecific, bExcludeTreatmentSpecific).toArray(new CharSequence[dataItemsList.size()]);
 
         plotLog = log.createLog(farmName, plot);
         if (plotLog.size() == 0) {
@@ -225,16 +227,14 @@ public class enterData extends AppCompatActivity {
         Button bu = (Button)findViewById(R.id.dataItemUnits);
         Button bs = (Button)findViewById(R.id.saveButton);
 
-        if(chosenDataItem.isCropSpecific){
+        if(chosenDataItem.isCropSpecific && (crop1!=null && crop2!=null)){
             bc.setVisibility(View.VISIBLE);
-            //TODO: build crop selector
         } else {
             bc.setVisibility(View.GONE);
         }
 
-        if(chosenDataItem.isTreatmentSpecific){
+        if(chosenDataItem.isTreatmentSpecific && (treatment1!=null && treatment2!=null)){
             bt.setVisibility(View.VISIBLE);
-            //TODO: build treatment selector
         } else {
             bt.setVisibility(View.GONE);
         }
@@ -249,8 +249,9 @@ public class enterData extends AppCompatActivity {
                 tv.setVisibility(View.VISIBLE);
                 ev.setVisibility(View.VISIBLE);
                 tu.setVisibility(View.VISIBLE);
-                bu.setVisibility(View.VISIBLE);
-                bu.setText(chosenDataItem.defaultUnits.name);
+
+                prepareUnits(bu,tu,tv);
+
                 break;
             case 1:
                 //date
@@ -265,9 +266,27 @@ public class enterData extends AppCompatActivity {
                 ev.setVisibility(View.VISIBLE);
                 tu.setVisibility(View.VISIBLE);
                 bu.setVisibility(View.VISIBLE);
-                bu.setText(chosenDataItem.defaultUnits.name);
+
+                prepareUnits(bu,tu,tv);
         }
         bs.setVisibility(View.VISIBLE);
+    }
+
+    public void prepareUnits(Button bu, TextView tu, TextView tv){
+        oUnit u = new oUnit(this);
+        unitsList = u.getUnits(chosenDataItem.type);
+        if(unitsList.size()==1) {
+            String units = unitsList.get(0).name;
+            tv.setText(tu.getText()+" ("+units+")");
+            tu.setVisibility(View.GONE);
+            bu.setVisibility(View.GONE);
+        } else {
+            tu.setVisibility(View.VISIBLE);
+            bu.setVisibility(View.VISIBLE);
+            unitsNamesArray = u.getUnitNames(chosenDataItem.type).toArray(new CharSequence[unitsList.size()]);
+            bu.setText(chosenDataItem.defaultUnits.name);
+            tv.setText(R.string.valueLabel);
+        }
     }
 
     public void displayDatePicker(View v){
@@ -307,9 +326,7 @@ public class enterData extends AppCompatActivity {
     }
 
     public void showUnitsSelector(View v){
-        oUnit u = new oUnit(this);
-        unitsList = u.getUnits(chosenDataItem.type);
-        unitsNamesArray = u.getUnitNames(chosenDataItem.type).toArray(new CharSequence[unitsList.size()]);
+
         if(unitsList.size()>1) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setCancelable(true);
@@ -335,7 +352,79 @@ public class enterData extends AppCompatActivity {
         }
     }
 
+    public void showCropSelector(View v){
+        ArrayList<String> cropNames = new ArrayList<>();
+        cropNames.add(crop1.name);
+        cropNames.add(crop2.name);
+        CharSequence cropNamesArray[] = cropNames.toArray(new CharSequence[2]);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setNegativeButton(R.string.cancelButtonText, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        final ListAdapter adapter = new ArrayAdapter<>(this, R.layout.checked_list_template, cropNamesArray);
+        builder.setSingleChoiceItems(adapter, -1, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                String chosenCropName="";
+                switch(i){
+                    case 0:
+                        chosenCropName=crop1.name;
+                        break;
+                    case 1:
+                        chosenCropName=crop2.name;
+                }
+                Button b = (Button) findViewById(R.id.enterCropButton);
+                b.setText(chosenCropName);
+
+                dialogInterface.dismiss();
+            }
+        });
+        AlertDialog dialogCrops = builder.create();
+        dialogCrops.show();
+    }
+
+    public void showTreatmentSelector(View v){
+        ArrayList<String> treatmentNames = new ArrayList<>();
+        treatmentNames.add(treatment1.name);
+        treatmentNames.add(treatment2.name);
+        CharSequence treatmentNamesArray[] = treatmentNames.toArray(new CharSequence[2]);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setNegativeButton(R.string.cancelButtonText, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        final ListAdapter adapter = new ArrayAdapter<>(this, R.layout.checked_list_template, treatmentNamesArray);
+        builder.setSingleChoiceItems(adapter, -1, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                String chosenTreatmentName="";
+                switch(i){
+                    case 0:
+                        chosenTreatmentName=treatment1.name;
+                        break;
+                    case 1:
+                        chosenTreatmentName=treatment2.name;
+                }
+                Button b = (Button) findViewById(R.id.enterTreatmentButton);
+                b.setText(chosenTreatmentName);
+
+                dialogInterface.dismiss();
+            }
+        });
+        AlertDialog dialogTreatments = builder.create();
+        dialogTreatments.show();
+    }
+
     public void fillTable() {
+
+    }
+
+    public void saveData(View v){
 
     }
 }
