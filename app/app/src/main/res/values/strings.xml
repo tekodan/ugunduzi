@@ -68,4 +68,9 @@
     <string name="opGoBack">Go back</string>
     <string name="enterCropLabel">Crop</string>
     <string name="enterTreatmentLabel">Treatment</string>
+    <string name="valueEmptyMessage">Value cannot be empty</string>
+    <string name="valueNegativeMessage">Value cannot be negative</string>
+    <string name="mustChooseCropMessage">You must choose a crop</string>
+    <string name="mustChooseTreatmentMessage">You must choose a treatment</string>
+    <string name="mustChooseUnitsMessage">You must specify the units</string>
 </resources>

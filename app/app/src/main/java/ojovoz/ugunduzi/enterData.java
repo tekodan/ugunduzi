@@ -7,7 +7,10 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
@@ -16,11 +19,14 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 
 /**
  * Created by Eugenio on 16/04/2018.
@@ -47,7 +53,11 @@ public class enterData extends AppCompatActivity {
 
     ArrayList<oDataItem> dataItemsList;
     public CharSequence dataItemsNamesArray[];
+
     public oDataItem chosenDataItem;
+    public oCrop chosenCrop;
+    public oTreatment chosenTreatment;
+    public oUnit chosenUnits;
 
     ArrayList<oUnit> unitsList;
     public CharSequence unitsNamesArray[];
@@ -116,19 +126,22 @@ public class enterData extends AppCompatActivity {
 
         dataItemDate = new Date();
 
+        unitsList = new ArrayList<>();
+
         oDataItem d = new oDataItem(this);
         boolean bExcludeCropSpecific = (crop1==null && crop2==null) ? true : false;
         boolean bExcludeTreatmentSpecific = (treatment1==null && treatment1==null) ? true : false;
         dataItemsList = d.getDataItems(bExcludeCropSpecific, bExcludeTreatmentSpecific);
         dataItemsNamesArray = d.getDataItemNames(bExcludeCropSpecific, bExcludeTreatmentSpecific).toArray(new CharSequence[dataItemsList.size()]);
 
-        plotLog = log.createLog(farmName, plot);
+        plotLog = log.createLog(farmName, userId, plot);
         if (plotLog.size() == 0) {
             TextView tv = (TextView) findViewById(R.id.previousDataItems);
             tv.setVisibility(View.GONE);
             TableLayout tl = (TableLayout) findViewById(R.id.dataItems);
             tl.setVisibility(View.GONE);
         } else {
+            plotLog = log.sortLogByDate(plotLog,true,10);
             fillTable();
         }
     }
@@ -217,6 +230,9 @@ public class enterData extends AppCompatActivity {
 
     public void showFields(int i){
         chosenDataItem = dataItemsList.get(i);
+
+        bChanges=true;
+
         Button bc = (Button)findViewById(R.id.enterCropButton);
         Button bt = (Button)findViewById(R.id.enterTreatmentButton);
         TextView td = (TextView)findViewById(R.id.enterDateText);
@@ -226,6 +242,10 @@ public class enterData extends AppCompatActivity {
         TextView tu = (TextView)findViewById(R.id.enterUnitsText);
         Button bu = (Button)findViewById(R.id.dataItemUnits);
         Button bs = (Button)findViewById(R.id.saveButton);
+
+        chosenCrop=null;
+        chosenTreatment=null;
+        chosenUnits=null;
 
         if(chosenDataItem.isCropSpecific && (crop1!=null && crop2!=null)){
             bc.setVisibility(View.VISIBLE);
@@ -259,6 +279,8 @@ public class enterData extends AppCompatActivity {
                 ev.setVisibility(View.GONE);
                 tu.setVisibility(View.GONE);
                 bu.setVisibility(View.GONE);
+                chosenUnits=null;
+                unitsList.clear();
                 break;
             case 2:
                 //cost
@@ -277,6 +299,7 @@ public class enterData extends AppCompatActivity {
         unitsList = u.getUnits(chosenDataItem.type);
         if(unitsList.size()==1) {
             String units = unitsList.get(0).name;
+            chosenUnits = unitsList.get(0);
             tv.setText(tu.getText()+" ("+units+")");
             tu.setVisibility(View.GONE);
             bu.setVisibility(View.GONE);
@@ -308,6 +331,9 @@ public class enterData extends AppCompatActivity {
         dialogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                bChanges=true;
+
                 DatePicker dp = (DatePicker) dialog.findViewById(R.id.datePicker);
                 int day = dp.getDayOfMonth();
                 int month = dp.getMonth();
@@ -340,9 +366,11 @@ public class enterData extends AppCompatActivity {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     if (i >= 0) {
-                        String chosenUnits = unitsNamesArray[i].toString();
+                        bChanges=true;
+                        chosenUnits = unitsList.get(i);
+                        String chosenUnitsName = unitsNamesArray[i].toString();
                         Button b = (Button) findViewById(R.id.dataItemUnits);
-                        b.setText(chosenUnits);
+                        b.setText(chosenUnitsName);
                     }
                     dialogInterface.dismiss();
                 }
@@ -368,12 +396,15 @@ public class enterData extends AppCompatActivity {
         builder.setSingleChoiceItems(adapter, -1, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                bChanges=true;
                 String chosenCropName="";
                 switch(i){
                     case 0:
+                        chosenCrop=crop1;
                         chosenCropName=crop1.name;
                         break;
                     case 1:
+                        chosenCrop=crop2;
                         chosenCropName=crop2.name;
                 }
                 Button b = (Button) findViewById(R.id.enterCropButton);
@@ -402,12 +433,15 @@ public class enterData extends AppCompatActivity {
         builder.setSingleChoiceItems(adapter, -1, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                bChanges=true;
                 String chosenTreatmentName="";
                 switch(i){
                     case 0:
+                        chosenTreatment=treatment1;
                         chosenTreatmentName=treatment1.name;
                         break;
                     case 1:
+                        chosenTreatment=treatment2;
                         chosenTreatmentName=treatment2.name;
                 }
                 Button b = (Button) findViewById(R.id.enterTreatmentButton);
@@ -422,9 +456,136 @@ public class enterData extends AppCompatActivity {
 
     public void fillTable() {
 
+        if(plotLog.size()>0) {
+
+            dateHelper dH = new dateHelper();
+
+            TableLayout tl0 = (TableLayout) findViewById(R.id.dataItems);
+            tl0.setVisibility(View.VISIBLE);
+
+            TableLayout tl = (TableLayout) findViewById(R.id.dataItemsTable);
+            tl.removeAllViews();
+            Iterator<oLog> logIterator = plotLog.iterator();
+            int n=0;
+            while (logIterator.hasNext()) {
+                oLog l = logIterator.next();
+
+                final TableRow trow = new TableRow(enterData.this);
+                TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT, 1.0f);
+                lp.setMargins(10, 10, 0, 10);
+
+                if (n % 2 == 0) {
+                    trow.setBackgroundColor(ContextCompat.getColor(this, R.color.colorFillFaded));
+                } else {
+                    trow.setBackgroundColor(ContextCompat.getColor(this, R.color.colorWhite));
+                }
+
+                TextView t1 = new TextView(enterData.this);
+                t1.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+                t1.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18f);
+                t1.setText(l.dataItem.name);
+                t1.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
+                t1.setPadding(0, 10, 0, 10);
+                t1.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+                        findViewById(R.id.childScrollView).getParent().requestDisallowInterceptTouchEvent(true);
+                        return false;
+                    }
+                });
+                trow.addView(t1, lp);
+
+                TextView t2 = new TextView(enterData.this);
+                t2.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+                t2.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18f);
+                t2.setText(dH.dateToString(l.date));
+                t2.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                t2.setPadding(0, 10, 0, 10);
+                trow.addView(t2, lp);
+                t2.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+                        findViewById(R.id.childScrollView).getParent().requestDisallowInterceptTouchEvent(true);
+                        return false;
+                    }
+                });
+
+                trow.setGravity(Gravity.CENTER_VERTICAL);
+                tl.addView(trow, lp);
+
+                n++;
+            }
+        }
     }
 
     public void saveData(View v){
+        EditText ev = (EditText)findViewById(R.id.dataItemValue);
+        String tv = ev.getText().toString();
+        if(!tv.isEmpty() || chosenDataItem.type==1){
+            float chosenValue = (tv.isEmpty()) ? 0 : Float.parseFloat(tv);
+            if((chosenValue>=0.0f && (chosenDataItem.type==0 || chosenDataItem.type==2)) || chosenDataItem.type==1){
+                if(!(crop1!=null && crop2!=null && chosenDataItem.isCropSpecific && chosenCrop==null)){
+                    if(!(treatment1!=null && treatment2!=null && chosenDataItem.isTreatmentSpecific && chosenTreatment==null)){
+                        if(!(unitsList.size()>1 && chosenUnits==null)){
+                            oLog l = new oLog(this);
+                            l.appendToLog(farmName,userId,plot,dataItemDate,chosenDataItem,chosenValue,chosenUnits,chosenCrop,chosenTreatment,"","");
+                            resetFields();
+                            resetLogList();
+                            fillTable();
+                        } else {
+                            Toast.makeText(this, R.string.mustChooseUnitsMessage, Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, R.string.mustChooseTreatmentMessage, Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(this, R.string.mustChooseCropMessage, Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, R.string.valueNegativeMessage, Toast.LENGTH_SHORT).show();
+                ev.requestFocus();
+            }
+        } else {
+            Toast.makeText(this, R.string.valueEmptyMessage, Toast.LENGTH_SHORT).show();
+            ev.requestFocus();
+        }
+    }
+
+    public void resetLogList(){
+        oLog l = new oLog(this);
+        plotLog = l.createLog(farmName, userId, plot);
+        plotLog = l.sortLogByDate(plotLog,true,10);
+    }
+
+    public void resetFields(){
+        bChanges=false;
+        chosenDataItem=null;
+        chosenCrop=null;
+        chosenTreatment=null;
+        chosenUnits=null;
+        dataItemDate=new Date();
+
+        Button bi = (Button)findViewById(R.id.enterDataButton);
+        bi.setText(R.string.enterNewDataItemButtonLabel);
+
+        Button bc = (Button)findViewById(R.id.enterCropButton);
+        bc.setVisibility(View.GONE);
+        Button bt = (Button)findViewById(R.id.enterTreatmentButton);
+        bt.setVisibility(View.GONE);
+        TextView td = (TextView)findViewById(R.id.enterDateText);
+        td.setVisibility(View.GONE);
+        Button bd = (Button)findViewById(R.id.dateButton);
+        bd.setVisibility(View.GONE);
+        TextView tv = (TextView)findViewById(R.id.enterValueText);
+        tv.setVisibility(View.GONE);
+        EditText ev = (EditText)findViewById(R.id.dataItemValue);
+        ev.setVisibility(View.GONE);
+        TextView tu = (TextView)findViewById(R.id.enterUnitsText);
+        tu.setVisibility(View.GONE);
+        Button bu = (Button)findViewById(R.id.dataItemUnits);
+        bu.setVisibility(View.GONE);
+        Button bs = (Button)findViewById(R.id.saveButton);
+        bs.setVisibility(View.GONE);
 
     }
 }

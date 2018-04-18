@@ -5,6 +5,8 @@ import android.content.Context;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -75,7 +77,7 @@ public class oLog {
         return ret;
     }
 
-    public ArrayList<oLog> createLog(String fName){
+    public ArrayList<oLog> createLog(String fName, int userId){
         ArrayList<oLog> ret = new ArrayList<>();
         csvFileManager log;
 
@@ -85,7 +87,7 @@ public class oLog {
             Iterator<String[]> iterator = logCSV.iterator();
             while (iterator.hasNext()) {
                 String[] record = iterator.next();
-                if(record[0].equals(fName)) {
+                if(record[0].equals(fName) && Integer.parseInt(record[1])==userId) {
                     oLog l = new oLog();
                     l.farmName = record[0];
                     l.userId = Integer.parseInt(record[1]);
@@ -109,7 +111,7 @@ public class oLog {
         return ret;
     }
 
-    public ArrayList<oLog> createLog(String fName, int plot){
+    public ArrayList<oLog> createLog(String fName, int userId, int plot){
         ArrayList<oLog> ret = new ArrayList<>();
         csvFileManager log;
 
@@ -119,7 +121,7 @@ public class oLog {
             Iterator<String[]> iterator = logCSV.iterator();
             while (iterator.hasNext()) {
                 String[] record = iterator.next();
-                if(record[0].equals(fName) && (Integer.parseInt(record[2])==plot)) {
+                if(record[0].equals(fName) && (Integer.parseInt(record[1])==userId) && (Integer.parseInt(record[2])==plot)) {
                     oLog l = new oLog();
                     l.farmName = record[0];
                     l.userId = Integer.parseInt(record[1]);
@@ -143,5 +145,40 @@ public class oLog {
         return ret;
     }
 
+    public void appendToLog(String farmName, int userId, int plot, Date date, oDataItem dataItem, float value, oUnit units, oCrop crop, oTreatment treatment, String picture, String sound){
+        dateHelper dH = new dateHelper();
+
+        csvFileManager log = new csvFileManager("log");
+        String dataItemId;
+        String unitsId;
+        String cropId;
+        String treatmentId;
+        dataItemId = (dataItem == null) ? "0" : Integer.toString(dataItem.id);
+        unitsId = (units == null) ? "0" : Integer.toString(units.id);
+        cropId = (crop == null) ? "0" : Integer.toString(crop.id);
+        treatmentId = (treatment == null) ? "0" : Integer.toString(treatment.id);
+        String[] newLine = {farmName, Integer.toString(userId), Integer.toString(plot), dH.dateToString(date), dataItemId, Float.toString(value), unitsId, cropId, treatmentId, picture, sound};
+
+        log.append(context, newLine);
+    }
+
+    public ArrayList<oLog> sortLogByDate(ArrayList<oLog> sortedLog, boolean reverse, int limit){
+        Collections.sort(sortedLog, new Comparator<oLog>() {
+            @Override
+            public int compare(oLog l1, oLog l2) {
+                return l1.date.compareTo(l2.date);
+            }
+        });
+
+        if(reverse){
+            Collections.reverse(sortedLog);
+        }
+
+        if(limit>0 && limit<sortedLog.size()){
+            sortedLog.subList(0,limit);
+        }
+
+        return sortedLog;
+    }
 
 }

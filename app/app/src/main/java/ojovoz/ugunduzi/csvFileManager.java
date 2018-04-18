@@ -1,11 +1,13 @@
 package ojovoz.ugunduzi;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,28 +44,51 @@ public class csvFileManager {
         return ret;
     }
 
-    public void append(Context context, String[] newLine) {
-
-        List<String[]> currentCSV = read(context);
-        currentCSV.add(newLine);
-
-        deleteCSVFile(context);
-
+    public void create(Context context, String[] newLine){
+        String[] nextLine;
+        CSVReader reader = new CSVReader(new StringReader(TextUtils.join(",",newLine)), ',', '"');
         File file = new File(context.getFilesDir(), filename);
         try {
             FileWriter w = new FileWriter(file);
             CSVWriter writer = new CSVWriter(w, ',', '"');
-
-            Iterator<String[]> iterator = currentCSV.iterator();
-            while (iterator.hasNext()) {
-                String[] thisLine = iterator.next();
-                writer.writeNext(thisLine);
+            while ((nextLine = reader.readNext()) != null) {
+                writer.writeNext(nextLine);
             }
             writer.close();
+            reader.close();
         } catch (IOException e) {
 
-        } finally {
+        }
+    }
 
+    public void append(Context context, String[] newLine) {
+
+        List<String[]> currentCSV = read(context);
+
+        if(currentCSV==null){
+            create(context, newLine);
+        } else {
+            currentCSV.add(newLine);
+
+
+            deleteCSVFile(context);
+
+            File file = new File(context.getFilesDir(), filename);
+            try {
+                FileWriter w = new FileWriter(file);
+                CSVWriter writer = new CSVWriter(w, ',', '"');
+
+                Iterator<String[]> iterator = currentCSV.iterator();
+                while (iterator.hasNext()) {
+                    String[] thisLine = iterator.next();
+                    writer.writeNext(thisLine);
+                }
+                writer.close();
+            } catch (IOException e) {
+
+            } finally {
+
+            }
         }
 
     }
