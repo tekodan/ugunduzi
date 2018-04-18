@@ -140,6 +140,8 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
                 @Override
                 public void onCancel(DialogInterface d) {
                     bConnecting = false;
+                    index=0;
+                    prefs.deletePreference("dataDownloaded");
                 }
             });
             doDownload();
@@ -198,6 +200,10 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
             if (uAS.equals("admin") && uPS.equals("admin")) { //TODO: command 'sync': downloads farms, updates local preferences & files
                 defineServer(server);
             } else if (uAS.equals("reset") && uPS.equals("reset")) {
+                user="";
+                prefs.deletePreference("user");
+                prefs.deletePreference("farm");
+                prefs.deletePreference("dataDownloaded");
                 downloadData();
             } else {
                 oUser newUser = new oUser(this, uAS, uPS);
@@ -226,79 +232,82 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
 
     @Override
     public void processFinish(String output) {
-
-        switch (connectionTask) {
-            case 0:
-                bConnecting = false;
-                String[] nextLine;
-                CSVReader reader = new CSVReader(new StringReader(output), ',', '"');
-                deleteCatalog(dataItems.get(index));
-                File file = new File(this.getFilesDir(), dataItems.get(index));
-                try {
-                    FileWriter w = new FileWriter(file);
-                    CSVWriter writer = new CSVWriter(w, ',', '"');
-                    while ((nextLine = reader.readNext()) != null) {
-                        writer.writeNext(nextLine);
-                    }
-                    writer.close();
-                    reader.close();
-                } catch (IOException e) {
-
-                }
-                index++;
-                if (index < dataItems.size()) {
-                    progressHandler.sendMessage(progressHandler.obtainMessage());
-                    doDownload();
-                } else {
+        if(bConnecting) {
+            switch (connectionTask) {
+                case 0:
                     bConnecting = false;
-                    dialog.dismiss();
-                    prefs.savePreferenceBoolean("dataDownloaded", true);
-                    dataDownloaded = true;
-                    if (!user.equals("")) {
-                        startNextActivity();
+                    String[] nextLine;
+                    CSVReader reader = new CSVReader(new StringReader(output), ',', '"');
+                    deleteCatalog(dataItems.get(index));
+                    File file = new File(this.getFilesDir(), dataItems.get(index));
+                    try {
+                        FileWriter w = new FileWriter(file);
+                        CSVWriter writer = new CSVWriter(w, ',', '"');
+                        while ((nextLine = reader.readNext()) != null) {
+                            writer.writeNext(nextLine);
+                        }
+                        writer.close();
+                        reader.close();
+                    } catch (IOException e) {
+
+                    }
+                    index++;
+                    if (index < dataItems.size()) {
+                        progressHandler.sendMessage(progressHandler.obtainMessage());
+                        doDownload();
                     } else {
-                        if (uAS == null || uPS == null) {
-                            updateAutocomplete();
+                        bConnecting = false;
+                        dialog.dismiss();
+                        prefs.savePreferenceBoolean("dataDownloaded", true);
+                        dataDownloaded = true;
+                        if (!user.equals("")) {
+                            startNextActivity();
                         } else {
-                            if (!uAS.isEmpty() && !uPS.isEmpty()) {
-                                if (!uAS.equals("reset") && !uAS.equals("admin")) {
-                                    connectionTask = 1;
-                                    createNewUser(uAS, uPS);
-                                }
-                            } else {
+                            if (uAS == null || uPS == null) {
                                 updateAutocomplete();
+                            } else {
+                                if (!uAS.isEmpty() && !uPS.isEmpty()) {
+                                    if (!uAS.equals("reset") && !uAS.equals("admin")) {
+                                        connectionTask = 1;
+                                        createNewUser(uAS, uPS);
+                                    } else {
+                                        updateAutocomplete();
+                                    }
+                                } else {
+                                    updateAutocomplete();
+                                }
                             }
                         }
                     }
-                }
-                break;
-            case 1:
-                if (TextUtils.isEmpty(output)) {
-                    bConnecting = false;
-                    dialog.dismiss();
-                    Toast.makeText(this, R.string.incorrectServerURLMessage, Toast.LENGTH_SHORT).show();
-                    defineServer(server);
-                } else {
-                    dialog.dismiss();
-                    userId = Integer.parseInt(output);
-                    if (userId != 0) {
-                        if (userId > 0) {
-                            prefs.savePreferenceInt("userId", userId);
-                        } else if (userId < 0) {
-                            userId *= -1;
-                            prefs.savePreferenceInt("userId", userId);
-                        }
-                        prefs.savePreference("user", uAS);
-                        prefs.savePreference("userPass", uPS);
-                        user = uAS;
-                        oUser newUser = new oUser(this);
-                        newUser.addNewUser(userId, uAS, uPS);
-                        startNextActivity();
+                    break;
+                case 1:
+                    if (TextUtils.isEmpty(output)) {
+                        bConnecting = false;
+                        dialog.dismiss();
+                        Toast.makeText(this, R.string.incorrectServerURLMessage, Toast.LENGTH_SHORT).show();
+                        defineServer(server);
                     } else {
-                        Toast.makeText(this, R.string.wrongPasswordLabel, Toast.LENGTH_SHORT).show();
-                        updateAutocomplete();
+                        dialog.dismiss();
+                        userId = Integer.parseInt(output);
+                        if (userId != 0) {
+                            if (userId > 0) {
+                                prefs.savePreferenceInt("userId", userId);
+                            } else if (userId < 0) {
+                                userId *= -1;
+                                prefs.savePreferenceInt("userId", userId);
+                            }
+                            prefs.savePreference("user", uAS);
+                            prefs.savePreference("userPass", uPS);
+                            user = uAS;
+                            oUser newUser = new oUser(this);
+                            newUser.addNewUser(userId, uAS, uPS);
+                            startNextActivity();
+                        } else {
+                            Toast.makeText(this, R.string.wrongPasswordLabel, Toast.LENGTH_SHORT).show();
+                            updateAutocomplete();
+                        }
                     }
-                }
+            }
         }
 
     }
@@ -309,10 +318,12 @@ public class login extends AppCompatActivity implements httpConnection.AsyncResp
             dialog.incrementProgressBy(uploadIncrement);
             CharSequence dialogTitle = getString(R.string.downloadDataProgressDialogTitle) + " " + dataItems.get(index);
             dialog.setMessage(dialogTitle);
+            /*
             if (dialog.getProgress() == dialog.getMax()) {
                 bConnecting = false;
                 dialog.dismiss();
             }
+            */
         }
     };
 
