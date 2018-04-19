@@ -73,4 +73,7 @@
     <string name="mustChooseCropMessage">You must choose a crop</string>
     <string name="mustChooseTreatmentMessage">You must choose a treatment</string>
     <string name="mustChooseUnitsMessage">You must specify the units</string>
+    <string name="pictureSoundActivityTitle">Picture + sound</string>
+    <string name="pictureButtonLabel">Take a picture</string>
+    <string name="soundButtonLabel">Record sound</string>
 </resources>

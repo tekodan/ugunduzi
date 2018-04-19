@@ -181,4 +181,10 @@ public class oLog {
         return sortedLog;
     }
 
+    public String getDataItemName(){
+        String ret = (crop!=null) ? (dataItem.name.indexOf("(crop)")>0) ? dataItem.name.replace("(crop)","("+crop.name+")") : dataItem.name + " ("+crop.name+")" : dataItem.name;
+        ret = (treatment!=null) ? (ret.indexOf("(treatment)")>0) ? ret.replace("(treatment)","("+treatment.name+")") : ret + " ("+treatment.name+")" : ret;
+        return ret;
+    }
+
 }

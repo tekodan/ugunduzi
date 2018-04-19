@@ -68,7 +68,7 @@ public class oPlot {
         iResizeY = (int)((h+y)-iResizeH-2);
         iContentsX = x+2;
         iContentsY = y+2;
-        iActionsX = (int)((w+x)-iResizeW-2);
+        iActionsX = (int)(x+(w/2))-(iActionsW/2);
         iActionsY = y+2;
     }
 }

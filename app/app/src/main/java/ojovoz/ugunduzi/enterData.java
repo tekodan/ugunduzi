@@ -483,7 +483,8 @@ public class enterData extends AppCompatActivity {
                 TextView t1 = new TextView(enterData.this);
                 t1.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
                 t1.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18f);
-                t1.setText(l.dataItem.name);
+                String dataItem = l.getDataItemName();
+                t1.setText(dataItem);
                 t1.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
                 t1.setPadding(0, 10, 0, 10);
                 t1.setOnTouchListener(new View.OnTouchListener() {
@@ -569,8 +570,10 @@ public class enterData extends AppCompatActivity {
         bi.setText(R.string.enterNewDataItemButtonLabel);
 
         Button bc = (Button)findViewById(R.id.enterCropButton);
+        bc.setText(R.string.enterCropLabel);
         bc.setVisibility(View.GONE);
         Button bt = (Button)findViewById(R.id.enterTreatmentButton);
+        bt.setText(R.string.enterTreatmentLabel);
         bt.setVisibility(View.GONE);
         TextView td = (TextView)findViewById(R.id.enterDateText);
         td.setVisibility(View.GONE);
@@ -579,6 +582,7 @@ public class enterData extends AppCompatActivity {
         TextView tv = (TextView)findViewById(R.id.enterValueText);
         tv.setVisibility(View.GONE);
         EditText ev = (EditText)findViewById(R.id.dataItemValue);
+        ev.setText(R.string.emptyString);
         ev.setVisibility(View.GONE);
         TextView tu = (TextView)findViewById(R.id.enterUnitsText);
         tu.setVisibility(View.GONE);

@@ -751,6 +751,14 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
             }
         });
 
+        Button psButton = (Button)dialog.findViewById(R.id.pictureSoundButton);
+        psButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goToPictureSound();
+            }
+        });
+
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialogInterface) {
@@ -765,6 +773,38 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
     public void goToDataEntry(){
         final Context context = this;
         Intent i = new Intent(context, enterData.class);
+        i.putExtra("user", user);
+        i.putExtra("userId", userId);
+        i.putExtra("userPass", userPass);
+        i.putExtra("farmName",farmName);
+        i.putExtra("plot",plotMatrix.currentPlot.id);
+        if(plotMatrix.currentPlot.crop1!=null) {
+            i.putExtra("crop1", plotMatrix.currentPlot.crop1.id);
+        } else {
+            i.putExtra("crop1", "-1");
+        }
+        if(plotMatrix.currentPlot.crop2!=null) {
+            i.putExtra("crop2", plotMatrix.currentPlot.crop2.id);
+        } else {
+            i.putExtra("crop2", "-1");
+        }
+        if(plotMatrix.currentPlot.treatment1!=null) {
+            i.putExtra("treatment1", plotMatrix.currentPlot.treatment1.id);
+        } else {
+            i.putExtra("treatment1", "-1");
+        }
+        if(plotMatrix.currentPlot.treatment2!=null) {
+            i.putExtra("treatment2", plotMatrix.currentPlot.treatment2.id);
+        } else {
+            i.putExtra("treatment2", "-1");
+        }
+        startActivity(i);
+        finish();
+    }
+
+    public void goToPictureSound(){
+        final Context context = this;
+        Intent i = new Intent(context, pictureSound.class);
         i.putExtra("user", user);
         i.putExtra("userId", userId);
         i.putExtra("userPass", userPass);
@@ -996,21 +1036,34 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
 
             if(p.crop1!=null) {
                 textPaint.getTextBounds(p.crop1.name, 0, p.crop1.name.length(), txtBounds1);
+
+                int n1=p.crop1.name.length();
+                while(txtBounds1.width()>(p.w-40)){
+                    n1--;
+                    textPaint.getTextBounds(p.crop1.name, 0, n1, txtBounds1);
+                }
+
                 if (p.crop2 != null) {
 
                     textPaint.getTextBounds(p.crop2.name, 0, p.crop2.name.length(), txtBounds2);
 
+                    int n2=p.crop2.name.length();
+                    while(txtBounds2.width()>(p.w-40)){
+                        n2--;
+                        textPaint.getTextBounds(p.crop1.name, 0, n2, txtBounds1);
+                    }
+
                     txtX = ((p.w - txtBounds1.width()) / 2) + p.x;
                     txtY = p.y + txtBounds1.height() + ((p.h - ((txtBounds1.height()*2) + txtBounds2.height()))/2);
-                    canvas.drawText(p.crop1.name, (int) txtX, (int) txtY, textPaint);
+                    canvas.drawText(p.crop1.name.substring(0,n1), (int) txtX, (int) txtY, textPaint);
 
                     txtX = ((p.w - txtBounds2.width()) / 2) + p.x;
-                    canvas.drawText(p.crop2.name, (int) txtX, (int) txtY + (txtBounds1.height()*1.5f), textPaint);
+                    canvas.drawText(p.crop2.name.substring(0,n2), (int) txtX, (int) txtY + (txtBounds1.height()*1.5f), textPaint);
 
                 } else {
                     txtX = ((p.w - txtBounds1.width()) / 2) + p.x;
                     txtY = ((p.h - (txtBounds1.height()/2)) / 2) + p.y + (txtBounds1.height()/2);
-                    canvas.drawText(p.crop1.name, (int) txtX, (int) txtY, textPaint);
+                    canvas.drawText(p.crop1.name.substring(0,n1), (int) txtX, (int) txtY, textPaint);
                 }
             }
         }
