@@ -166,7 +166,6 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
         iconContentsActive=BitmapFactory.decodeResource(this.getResources(),R.drawable.contents_active);
         iconActionsActive=BitmapFactory.decodeResource(this.getResources(),R.drawable.actions_active);
 
-
         plotMatrix = new oPlotMatrix();
 
         LinearLayout root = (LinearLayout) findViewById(R.id.mainRoot);
@@ -199,14 +198,27 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
                 textPaint.setTypeface(Typeface.create("Arial", Typeface.NORMAL));
 
                 plotMatrix.createMatrix(displayWidth,displayHeight);
+                createFarm();
 
-                if(newFarm){
-                    plotMatrix.addPlot(iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight(), iconActions.getWidth(), iconActions.getHeight());
-                } else if(state==1){
-                    plotMatrix.fromString(ctxt,prefs.getPreference(user+"_"+farmName.replaceAll(" ","_")),";",iconMove.getWidth(), iconMove.getHeight(), iconResize.getWidth(), iconResize.getHeight(), iconContents.getWidth(), iconContents.getHeight(), iconActions.getWidth(), iconActions.getHeight());
-                }
             }
         });
+    }
+
+    public void createFarm(){
+        int mw=iconMove.getWidth();
+        int mh=iconMove.getHeight();
+        int rw=iconResize.getWidth();
+        int rh=iconResize.getHeight();
+        int cw=iconContents.getWidth();
+        int ch=iconContents.getHeight();
+        int aw=iconActions.getWidth();
+        int ah=iconActions.getHeight();
+
+        if(newFarm){
+            plotMatrix.addPlot(mw, mh, rw, rh, cw, ch, aw, ah);
+        } else if(state==1){
+            plotMatrix.fromString(this,prefs.getPreference(user+"_"+farmName.replaceAll(" ","_")),";",mw,mh,rw,rh,cw,ch,aw,ah);
+        }
     }
 
     @Override
@@ -1038,7 +1050,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
                 textPaint.getTextBounds(p.crop1.name, 0, p.crop1.name.length(), txtBounds1);
 
                 int n1=p.crop1.name.length();
-                while(txtBounds1.width()>(p.w-40)){
+                while(txtBounds1.width()>(p.w)){
                     n1--;
                     textPaint.getTextBounds(p.crop1.name, 0, n1, txtBounds1);
                 }
@@ -1048,7 +1060,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
                     textPaint.getTextBounds(p.crop2.name, 0, p.crop2.name.length(), txtBounds2);
 
                     int n2=p.crop2.name.length();
-                    while(txtBounds2.width()>(p.w-40)){
+                    while(txtBounds2.width()>(p.w)){
                         n2--;
                         textPaint.getTextBounds(p.crop1.name, 0, n2, txtBounds1);
                     }
