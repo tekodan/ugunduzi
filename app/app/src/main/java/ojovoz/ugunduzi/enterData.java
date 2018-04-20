@@ -148,34 +148,43 @@ public class enterData extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        tryGoBack();
+        tryExit(2);
     }
 
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         super.onCreateOptionsMenu(menu);
-        menu.add(0, 0, 0, R.string.opGoBack);
+        menu.add(0, 0, 0, R.string.opPictureSound);
+        menu.add(1, 1, 1, R.string.opManagePlotRecords);
+        menu.add(2, 2, 2, R.string.opGoBack);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case 0:
-                tryGoBack();
-        }
+        tryExit(item.getItemId());
         return super.onOptionsItemSelected(item);
     }
 
-    public void tryGoBack(){
+    public void tryExit(int exitAction){
         if(bChanges) {
-            confirmExit();
+            confirmExit(exitAction);
         } else {
-            goBack();
+            switch (exitAction) {
+                case 0:
+                    goToPictureSound();
+                    break;
+                case 1:
+                    goToManageRecords();
+                    break;
+                case 2:
+                    goBack();
+            }
         }
     }
 
-    public void confirmExit() {
+    public void confirmExit(int e) {
+        final int exitAction = e;
         AlertDialog.Builder logoutDialog = new AlertDialog.Builder(this);
         logoutDialog.setMessage(R.string.dataNotSavedText);
         logoutDialog.setNegativeButton(R.string.noButtonText, null);
@@ -183,7 +192,16 @@ public class enterData extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
 
-                goBack();
+                switch (exitAction) {
+                    case 0:
+                        goToPictureSound();
+                        break;
+                    case 1:
+                        goToManageRecords();
+                        break;
+                    case 2:
+                        goBack();
+                }
 
             }
         });
@@ -201,6 +219,41 @@ public class enterData extends AppCompatActivity {
         i.putExtra("firstFarm", false);
         startActivity(i);
         finish();
+    }
+
+    public void goToPictureSound(){
+        Intent i = new Intent(this, pictureSound.class);
+        i.putExtra("user", user);
+        i.putExtra("userId", userId);
+        i.putExtra("userPass", userPass);
+        i.putExtra("farmName", farmName);
+        i.putExtra("plot", plot);
+        if(crop1!=null) {
+            i.putExtra("crop1", crop1.id);
+        } else {
+            i.putExtra("crop1", "-1");
+        }
+        if(crop2!=null) {
+            i.putExtra("crop2", crop2.id);
+        } else {
+            i.putExtra("crop2", "-1");
+        }
+        if(treatment1!=null) {
+            i.putExtra("treatment1", treatment1.id);
+        } else {
+            i.putExtra("treatment1", "-1");
+        }
+        if(treatment2!=null) {
+            i.putExtra("treatment2", treatment2.id);
+        } else {
+            i.putExtra("treatment2", "-1");
+        }
+        startActivity(i);
+        finish();
+    }
+
+    void goToManageRecords(){
+
     }
 
     public void showDataItemsSelector(View v){

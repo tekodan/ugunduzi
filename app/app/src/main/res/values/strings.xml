@@ -76,4 +76,8 @@
     <string name="pictureSoundActivityTitle">Picture + sound</string>
     <string name="pictureButtonLabel">Take a picture</string>
     <string name="soundButtonLabel">Record sound</string>
+    <string name="opPictureSound">Picture + sound</string>
+    <string name="opManagePlotRecords">Plot records</string>
+    <string name="opEnterData">Enter data</string>
+    <string name="pictureSoundNotSavedText">Picture and sound have not been saved. Do you really want to exit?</string>
 </resources>

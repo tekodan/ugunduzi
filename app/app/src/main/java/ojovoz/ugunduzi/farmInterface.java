@@ -193,6 +193,7 @@ public class farmInterface extends AppCompatActivity implements httpConnection.A
 
                 textPaint = new TextPaint();
                 textPaint.setTextSize(26);
+                textPaint.setAntiAlias(true);
                 textPaint.setTextAlign(Paint.Align.LEFT);
                 textPaint.setColor(ContextCompat.getColor(ctxt, R.color.colorBlack));
                 textPaint.setTypeface(Typeface.create("Arial", Typeface.NORMAL));
